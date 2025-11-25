@@ -678,6 +678,20 @@ hr {
     font-size: 13px;
   }
 }
+
+.loading {
+  text-align: center;
+  padding: 20px;
+  color: var(--muted);
+}
+
+.export-section {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 15px;
+}
 </style>
 </head>
 <body>
@@ -721,7 +735,9 @@ hr {
       <!-- Blog list -->
       <section id="blog" class="card" data-page="blog" style="display:none">
         <h2 class="page-title">Latest Articles</h2>
-        <div class="posts-container" id="posts"></div>
+        <div class="posts-container" id="posts">
+          <div class="loading">Loading posts...</div>
+        </div>
       </section>
 
       <!-- Admin (secured) -->
@@ -763,7 +779,27 @@ hr {
             <span class="toggle-icon">▼</span>
           </div>
           <div class="toggle-content show" id="managePosts">
-            <div id="adminPosts"></div>
+            <div id="adminPosts">
+              <div class="loading">Loading posts...</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="toggle-section">
+          <div class="toggle-header" onclick="toggleSection('backupSection')">
+            <h3>Data Management</h3>
+            <span class="toggle-icon">▼</span>
+          </div>
+          <div class="toggle-content" id="backupSection">
+            <div class="export-section">
+              <p class="small"><strong>Export Posts:</strong> Download all posts as JSON file to backup or transfer to another device.</p>
+              <button onclick="exportPosts()" class="btn" style="background:#10b981; margin-top: 10px;">Export Posts JSON</button>
+              
+              <p class="small" style="margin-top: 15px;"><strong>Import Posts:</strong> Upload JSON file to restore posts (this will replace all current posts).</p>
+              <input type="file" id="importFile" accept=".json" style="display: none" onchange="importPosts(this.files)">
+              <button onclick="document.getElementById('importFile').click()" class="btn" style="background:#f59e0b; margin-top: 10px;">Import Posts JSON</button>
+            </div>
+            <div id="backupStatus" class="publish-status"></div>
           </div>
         </div>
 
@@ -787,6 +823,7 @@ hr {
         </div>
       </section>
 
+      <!-- Other sections (About, Contact, Privacy) remain same -->
       <!-- ABOUT PAGE -->
       <section id="about" class="card" data-page="about" style="display:none">
         <h2 class="page-title">About Rajesh Kumar</h2>
@@ -879,7 +916,9 @@ hr {
       <!-- Blog posts section -->
       <div class="card">
         <h4>Latest Blog Posts</h4>
-        <div class="posts-container" id="sidebarPosts"></div>
+        <div class="posts-container" id="sidebarPosts">
+          <div class="loading">Loading posts...</div>
+        </div>
       </div>
 
       <div class="card" style="margin-top:20px">
@@ -969,384 +1008,418 @@ let isAdmin = localStorage.getItem('adminSession') === 'true';
 const ADMIN_USER = 'admin';
 const ADMIN_PASS = 'Rajesh!@';
 
-// Check session on page load
-function checkSession() {
-  if (isAdmin) {
-    document.getElementById('adminBadge').style.display = 'inline-block';
-    // If already logged in and on login page, redirect to admin
-    if (window.location.hash === '#login' || document.querySelector('[data-page="login"]').style.display === 'block') {
-      showPage('admin');
+// GitHub JSON file URL - Yeh aapko update karna hoga apne repository ke hisaab se
+const GITHUB_JSON_URL = 'https://raw.githubusercontent.com/rajesh01-droid/rajesh-kumar-blog/main/data/posts.json';
+
+// Posts array
+let posts = [];
+
+// Load posts from GitHub JSON file
+async function loadPosts() {
+    try {
+        const response = await fetch(GITHUB_JSON_URL);
+        if (response.ok) {
+            posts = await response.json();
+            renderPosts();
+        } else {
+            throw new Error('Failed to load posts from GitHub');
+        }
+    } catch (error) {
+        console.error('Error loading posts from GitHub:', error);
+        // Fallback to localStorage
+        posts = JSON.parse(localStorage.getItem('posts')) || getDefaultPosts();
+        renderPosts();
     }
-  }
-  updateAdminIndicator();
 }
 
-function updateAdminIndicator() {
-  const badge = document.getElementById('adminBadge');
-  if (isAdmin) {
-    badge.style.display = 'inline-block';
-    badge.textContent = '● Live';
-  } else {
-    badge.style.display = 'none';
-  }
+// Get default posts if none exist
+function getDefaultPosts() {
+    return [
+        {
+            id: 1,
+            title: 'How IT Infrastructure Management Impacts Organizational Efficiency',
+            content: 'Effective IT infrastructure management is crucial for modern organizations...',
+            image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+            imageCredit: 'Source: Unsplash'
+        },
+        {
+            id: 2,
+            title: 'The Importance of Data Accuracy in Reporting Systems',
+            content: 'Accurate data is the foundation of effective decision-making in any organization...',
+            image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+            imageCredit: 'Source: Unsplash'
+        }
+    ];
 }
 
-// Posts and admin logic
-let posts = JSON.parse(localStorage.getItem('posts')) || [
-  {
-    id: 1,
-    title: 'How IT Infrastructure Management Impacts Organizational Efficiency',
-    content: 'Effective IT infrastructure management is crucial for modern organizations to maintain operational efficiency and competitive advantage. In my experience managing IT systems across various organizations, I\'ve observed that a well-maintained infrastructure directly impacts productivity, security, and scalability. Key components include network configuration, server management, data security protocols, and user support systems. Regular audits, proactive maintenance, and strategic upgrades are essential to prevent downtime and ensure business continuity. Organizations that invest in robust IT infrastructure typically experience fewer disruptions, faster response times, and better resource utilization. Implementing comprehensive IT policies and training programs further enhances system utilization and reduces technical issues. In today\'s digital landscape, a reliable IT infrastructure isn\'t just a support function—it\'s a strategic asset that drives organizational success.',
-    image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-    imageCredit: 'Source: Unsplash'
-  },
-  {
-    id: 2,
-    title: 'The Importance of Data Accuracy in Reporting Systems',
-    content: 'Accurate data is the foundation of effective decision-making in any organization. Through my work with DHIS, SAS, and custom reporting systems, I\'ve seen how data quality directly impacts strategic planning and operational efficiency. Data accuracy begins with proper collection methods, validation processes, and consistent monitoring. Comparative analysis between different systems, like DHIS and SAS, helps identify discrepancies and maintain data integrity. Regular audits, automated validation checks, and clear documentation protocols are essential practices. When data is reliable, organizations can make informed decisions, allocate resources effectively, and demonstrate accountability to stakeholders. Investing in data management processes ultimately saves time and resources while improving overall organizational performance. In my current role, maintaining data accuracy has been crucial for generating actionable insights and supporting evidence-based decision making.',
-    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-    imageCredit: 'Source: Unsplash'
-  }
-];
-localStorage.setItem('posts', JSON.stringify(posts));
+// Save posts to localStorage (as backup)
+function savePostsToLocalStorage() {
+    localStorage.setItem('posts', JSON.stringify(posts));
+}
 
-// Image preview functionality
-document.getElementById('imageUrl').addEventListener('input', function() {
-  const imageUrl = this.value.trim();
-  const imagePreview = document.getElementById('imagePreview');
-  
-  if (imageUrl) {
-    imagePreview.innerHTML = `<img src="${imageUrl}" class="post-image" alt="Image preview" onerror="this.style.display='none'; imagePreview.innerHTML='<div style=\'text-align:center\'><i class=\'fas fa-exclamation-triangle\'></i><div>Invalid Image URL</div></div>'" />`;
-  } else {
-    imagePreview.innerHTML = `
-      <div style="text-align:center">
-        <i class="fas fa-image"></i>
-        <div>Post Image Preview</div>
-        <div class="image-help">Add image URL below to see preview</div>
-      </div>
-    `;
-  }
-});
+// Export posts as JSON file
+function exportPosts() {
+    const dataStr = JSON.stringify(posts, null, 2);
+    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+    
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(dataBlob);
+    link.download = 'blog-posts-backup.json';
+    link.click();
+    
+    document.getElementById('backupStatus').innerText = '✅ Posts exported successfully! Download the JSON file and upload it to your GitHub repository in the data folder.';
+    document.getElementById('backupStatus').style.color = '#10b981';
+}
+
+// Import posts from JSON file
+function importPosts(files) {
+    if (files.length === 0) return;
+    
+    const file = files[0];
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+        try {
+            const importedPosts = JSON.parse(e.target.result);
+            if (Array.isArray(importedPosts)) {
+                posts = importedPosts;
+                savePostsToLocalStorage();
+                renderPosts();
+                renderAdmin();
+                
+                document.getElementById('backupStatus').innerText = '✅ Posts imported successfully! Remember to also update the posts.json file in your GitHub repository.';
+                document.getElementById('backupStatus').style.color = '#10b981';
+            } else {
+                throw new Error('Invalid file format');
+            }
+        } catch (error) {
+            document.getElementById('backupStatus').innerText = '❌ Error importing posts. Invalid file format.';
+            document.getElementById('backupStatus').style.color = '#ef4444';
+        }
+    };
+    
+    reader.readAsText(file);
+}
+
+// Rest of the functions remain the same as previous code
+// (renderPosts, toggleFullContent, showPage, login, addPost, etc.)
 
 function renderPosts() {
-  const box = document.getElementById('posts');
-  const sidebarBox = document.getElementById('sidebarPosts');
-  
-  // Clear both containers
-  box.innerHTML = '';
-  sidebarBox.innerHTML = '';
-  
-  if (posts.length === 0) {
-    box.innerHTML = '<p class="small">No blog posts yet. Check back soon!</p>';
-    sidebarBox.innerHTML = '<p class="small">No blog posts yet. Check back soon!</p>';
-    return;
-  }
-  
-  // Show latest posts first
-  posts.slice().reverse().forEach(p => {
-    const el = document.createElement('div');
-    el.className = 'post';
+    const box = document.getElementById('posts');
+    const sidebarBox = document.getElementById('sidebarPosts');
     
-    let imageHtml = '';
-    if (p.image) {
-      imageHtml = `
-        <img src="${p.image}" class="post-image" alt="${p.title}" />
-        ${p.imageCredit ? `<div class="image-credit">${p.imageCredit}</div>` : ''}
-      `;
+    // Clear both containers
+    box.innerHTML = '';
+    sidebarBox.innerHTML = '';
+    
+    if (posts.length === 0) {
+        box.innerHTML = '<p class="small">No blog posts yet. Check back soon!</p>';
+        sidebarBox.innerHTML = '<p class="small">No blog posts yet. Check back soon!</p>';
+        return;
     }
     
-    el.innerHTML = `
-      ${imageHtml}
-      <h3>${p.title}</h3>
-      <div class="meta">Posted — ${new Date(p.id || Date.now()).toLocaleDateString()}</div>
-      <div class="post-content">
-        <p>${p.content.substring(0, 400)}...</p>
-        <span class="read-more" onclick="toggleFullContent(this)">Read full article</span>
-        <div class="full-content">
-          <p>${p.content}</p>
-          <span class="read-more" onclick="toggleFullContent(this)">Show less</span>
-        </div>
-      </div>
-    `;
-    box.appendChild(el);
-    
-    // Create a simplified version for sidebar
-    const sidebarEl = document.createElement('div');
-    sidebarEl.className = 'post';
-    sidebarEl.innerHTML = `
-      <h3 style="font-size:15px;margin-bottom:5px">${p.title}</h3>
-      <div class="meta">Posted — ${new Date(p.id || Date.now()).toLocaleDateString()}</div>
-      <p class="small">${p.content.substring(0, 150)}...</p>
-      <span class="read-more" onclick="showPage('blog')">Read more</span>
-    `;
-    sidebarBox.appendChild(sidebarEl);
-  });
+    // Show latest posts first
+    posts.slice().reverse().forEach(p => {
+        const el = document.createElement('div');
+        el.className = 'post';
+        
+        let imageHtml = '';
+        if (p.image) {
+            imageHtml = `
+                <img src="${p.image}" class="post-image" alt="${p.title}" />
+                ${p.imageCredit ? `<div class="image-credit">${p.imageCredit}</div>` : ''}
+            `;
+        }
+        
+        el.innerHTML = `
+            ${imageHtml}
+            <h3>${p.title}</h3>
+            <div class="meta">Posted — ${new Date(p.id || Date.now()).toLocaleDateString()}</div>
+            <div class="post-content">
+                <p>${p.content.substring(0, 400)}...</p>
+                <span class="read-more" onclick="toggleFullContent(this)">Read full article</span>
+                <div class="full-content">
+                    <p>${p.content}</p>
+                    <span class="read-more" onclick="toggleFullContent(this)">Show less</span>
+                </div>
+            </div>
+        `;
+        box.appendChild(el);
+        
+        // Create a simplified version for sidebar
+        const sidebarEl = document.createElement('div');
+        sidebarEl.className = 'post';
+        sidebarEl.innerHTML = `
+            <h3 style="font-size:15px;margin-bottom:5px">${p.title}</h3>
+            <div class="meta">Posted — ${new Date(p.id || Date.now()).toLocaleDateString()}</div>
+            <p class="small">${p.content.substring(0, 150)}...</p>
+            <span class="read-more" onclick="showPage('blog')">Read more</span>
+        `;
+        sidebarBox.appendChild(sidebarEl);
+    });
 }
 
 function toggleFullContent(element) {
-  const contentDiv = element.parentElement;
-  const fullContent = contentDiv.querySelector('.full-content');
-  const readMore = contentDiv.querySelector('.read-more');
-  
-  if (fullContent.style.display === 'none' || !fullContent.style.display) {
-    fullContent.style.display = 'block';
-    readMore.textContent = 'Show less';
-  } else {
-    fullContent.style.display = 'none';
-    readMore.textContent = 'Read full article';
-  }
+    const contentDiv = element.parentElement;
+    const fullContent = contentDiv.querySelector('.full-content');
+    const readMore = contentDiv.querySelector('.read-more');
+    
+    if (fullContent.style.display === 'none' || !fullContent.style.display) {
+        fullContent.style.display = 'block';
+        readMore.textContent = 'Show less';
+    } else {
+        fullContent.style.display = 'none';
+        readMore.textContent = 'Read full article';
+    }
 }
 
 function toggleSection(sectionId) {
-  const section = document.getElementById(sectionId);
-  const icon = section.previousElementSibling.querySelector('.toggle-icon');
-  
-  if (section.classList.contains('show')) {
-    section.classList.remove('show');
-    icon.textContent = '▼';
-  } else {
-    section.classList.add('show');
-    icon.textContent = '▲';
-  }
+    const section = document.getElementById(sectionId);
+    const icon = section.previousElementSibling.querySelector('.toggle-icon');
+    
+    if (section.classList.contains('show')) {
+        section.classList.remove('show');
+        icon.textContent = '▼';
+    } else {
+        section.classList.add('show');
+        icon.textContent = '▲';
+    }
 }
 
 function showPage(page) {
-  // Hide all main content sections
-  document.querySelectorAll('[data-page]').forEach(s => {
-    s.style.display = 'none';
-  });
-  
-  // Show the selected page
-  const el = document.querySelector(`[data-page="${page}"]`);
-  if (el) {
-    el.style.display = 'block';
-  }
-  
-  if (page === 'login') {
-    document.getElementById('loginStatus').innerText = '';
-    document.getElementById('user').value = '';
-    document.getElementById('pass').value = '';
-  }
-  
-  // Auto-redirect to admin if already logged in
-  if (page === 'admin' && !isAdmin) {
-    showPage('login');
-    document.getElementById('loginStatus').innerText = 'Please login to access admin panel';
-    document.getElementById('loginStatus').className = 'login-status';
-  }
-  
-  // If trying to access login but already logged in, go to admin
-  if (page === 'login' && isAdmin) {
-    showPage('admin');
-  }
+    // Hide all main content sections
+    document.querySelectorAll('[data-page]').forEach(s => {
+        s.style.display = 'none';
+    });
+    
+    // Show the selected page
+    const el = document.querySelector(`[data-page="${page}"]`);
+    if (el) {
+        el.style.display = 'block';
+    }
+    
+    if (page === 'login') {
+        document.getElementById('loginStatus').innerText = '';
+        document.getElementById('user').value = '';
+        document.getElementById('pass').value = '';
+    }
+    
+    // Auto-redirect to admin if already logged in
+    if (page === 'admin' && !isAdmin) {
+        showPage('login');
+        document.getElementById('loginStatus').innerText = 'Please login to access admin panel';
+        document.getElementById('loginStatus').className = 'login-status';
+    }
+    
+    // If trying to access login but already logged in, go to admin
+    if (page === 'login' && isAdmin) {
+        showPage('admin');
+    }
 }
 
 function login() {
-  const u = document.getElementById('user').value.trim();
-  const p = document.getElementById('pass').value.trim();
-  const statusEl = document.getElementById('loginStatus');
-  
-  if (u === ADMIN_USER && p === ADMIN_PASS) {
-    isAdmin = true;
-    localStorage.setItem('adminSession', 'true');
-    statusEl.innerText = 'Login successful! Redirecting...';
-    statusEl.className = 'login-status success';
+    const u = document.getElementById('user').value.trim();
+    const p = document.getElementById('pass').value.trim();
+    const statusEl = document.getElementById('loginStatus');
     
-    updateAdminIndicator();
-    
-    setTimeout(() => {
-      showPage('admin');
-      renderAdmin();
-    }, 1000);
-  } else {
-    statusEl.innerText = 'Invalid username or password';
-    statusEl.className = 'login-status';
-  }
+    if (u === ADMIN_USER && p === ADMIN_PASS) {
+        isAdmin = true;
+        localStorage.setItem('adminSession', 'true');
+        statusEl.innerText = 'Login successful! Redirecting...';
+        statusEl.className = 'login-status success';
+        
+        updateAdminIndicator();
+        
+        setTimeout(() => {
+            showPage('admin');
+            renderAdmin();
+        }, 1000);
+    } else {
+        statusEl.innerText = 'Invalid username or password';
+        statusEl.className = 'login-status';
+    }
 }
 
 function logout() {
-  isAdmin = false;
-  localStorage.removeItem('adminSession');
-  updateAdminIndicator();
-  showPage('home');
-  
-  // Show logout confirmation
-  const statusEl = document.getElementById('deleteStatus');
-  statusEl.innerText = '✅ Successfully logged out';
-  statusEl.style.color = '#10b981';
-  
-  setTimeout(() => {
-    statusEl.innerText = '';
-  }, 3000);
+    isAdmin = false;
+    localStorage.removeItem('adminSession');
+    updateAdminIndicator();
+    showPage('home');
+    
+    // Show logout confirmation
+    const statusEl = document.getElementById('deleteStatus');
+    statusEl.innerText = '✅ Successfully logged out';
+    statusEl.style.color = '#10b981';
+    
+    setTimeout(() => {
+        statusEl.innerText = '';
+    }, 3000);
 }
 
 function addPost() {
-  if (!isAdmin) {
-    alert('Session expired. Please login again.');
-    showPage('login');
-    return;
-  }
-  
-  const t = document.getElementById('title').value.trim();
-  const c = document.getElementById('content').value.trim();
-  const imageUrl = document.getElementById('imageUrl').value.trim();
-  const imageCredit = document.getElementById('imageCredit').value.trim();
-  const statusEl = document.getElementById('publishStatus');
-  
-  if (!t || !c) {
-    statusEl.innerText = 'Please fill title and content fields';
-    statusEl.style.color = '#ef4444';
-    return;
-  }
-  
-  const id = Date.now();
-  posts.push({ 
-    id, 
-    title: t, 
-    content: c,
-    image: imageUrl || null,
-    imageCredit: imageCredit || null
-  });
-  localStorage.setItem('posts', JSON.stringify(posts));
-  
-  // Show success message
-  statusEl.innerText = '✅ Post published successfully!' + (imageUrl ? ' (with image)' : '');
-  statusEl.style.color = '#10b981';
-  
-  // Update both blog and admin views
-  renderPosts();
-  renderAdmin();
-  
-  // Clear form fields
-  document.getElementById('title').value = '';
-  document.getElementById('content').value = '';
-  document.getElementById('imageUrl').value = '';
-  document.getElementById('imageCredit').value = '';
-  document.getElementById('imagePreview').innerHTML = `
-    <div style="text-align:center">
-      <i class="fas fa-image"></i>
-      <div>Post Image Preview</div>
-      <div class="image-help">Add image URL below to see preview</div>
-    </div>
-  `;
-  
-  // Auto-hide success message after 3 seconds
-  setTimeout(() => {
-    statusEl.innerText = '';
-  }, 3000);
+    if (!isAdmin) {
+        alert('Session expired. Please login again.');
+        showPage('login');
+        return;
+    }
+    
+    const t = document.getElementById('title').value.trim();
+    const c = document.getElementById('content').value.trim();
+    const imageUrl = document.getElementById('imageUrl').value.trim();
+    const imageCredit = document.getElementById('imageCredit').value.trim();
+    const statusEl = document.getElementById('publishStatus');
+    
+    if (!t || !c) {
+        statusEl.innerText = 'Please fill title and content fields';
+        statusEl.style.color = '#ef4444';
+        return;
+    }
+    
+    const id = Date.now();
+    posts.push({ 
+        id, 
+        title: t, 
+        content: c,
+        image: imageUrl || null,
+        imageCredit: imageCredit || null
+    });
+    
+    // Save to localStorage as backup
+    savePostsToLocalStorage();
+    
+    // Show success message with instructions
+    statusEl.innerHTML = '✅ Post published successfully!<br><small>To make this post available on all devices, export the posts and update the posts.json file in your GitHub repository.</small>';
+    statusEl.style.color = '#10b981';
+    
+    // Update both blog and admin views
+    renderPosts();
+    renderAdmin();
+    
+    // Clear form fields
+    document.getElementById('title').value = '';
+    document.getElementById('content').value = '';
+    document.getElementById('imageUrl').value = '';
+    document.getElementById('imageCredit').value = '';
+    document.getElementById('imagePreview').innerHTML = `
+        <div style="text-align:center">
+            <i class="fas fa-image"></i>
+            <div>Post Image Preview</div>
+            <div class="image-help">Add image URL below to see preview</div>
+        </div>
+    `;
 }
 
 function renderAdmin() {
-  const box = document.getElementById('adminPosts');
-  box.innerHTML = '';
-  
-  if (posts.length === 0) {
-    box.innerHTML = '<p class="small">No posts yet. Create your first post above!</p>';
-    return;
-  }
-  
-  // Show latest posts first in admin panel too
-  posts.slice().reverse().forEach(p => {
-    const d = document.createElement('div');
-    d.className = 'post';
-    d.innerHTML = `
-      ${p.image ? `<img src="${p.image}" style="width:100px;height:60px;object-fit:cover;border-radius:4px;margin-bottom:8px;" alt="Thumbnail" />` : ''}
-      <h3>${p.title}</h3>
-      <div class='small'>ID: ${p.id} | Posted: ${new Date(p.id).toLocaleDateString()}</div>
-      <div style='margin-top:8px'>
-        <button onclick='editPost(${p.id})' class='btn'>Edit</button> 
-        <button onclick='deletePost(${p.id})' class='btn' style='background:#ef4444'>Delete</button>
-      </div>`;
-    box.appendChild(d);
-  });
+    const box = document.getElementById('adminPosts');
+    box.innerHTML = '';
+    
+    if (posts.length === 0) {
+        box.innerHTML = '<p class="small">No posts yet. Create your first post above!</p>';
+        return;
+    }
+    
+    // Show latest posts first in admin panel too
+    posts.slice().reverse().forEach(p => {
+        const d = document.createElement('div');
+        d.className = 'post';
+        d.innerHTML = `
+            ${p.image ? `<img src="${p.image}" style="width:100px;height:60px;object-fit:cover;border-radius:4px;margin-bottom:8px;" alt="Thumbnail" />` : ''}
+            <h3>${p.title}</h3>
+            <div class='small'>ID: ${p.id} | Posted: ${new Date(p.id).toLocaleDateString()}</div>
+            <div style='margin-top:8px'>
+                <button onclick='editPost(${p.id})' class='btn'>Edit</button> 
+                <button onclick='deletePost(${p.id})' class='btn' style='background:#ef4444'>Delete</button>
+            </div>`;
+        box.appendChild(d);
+    });
 }
 
 function editPost(id) {
-  if (!isAdmin) {
-    alert('Session expired. Please login again.');
-    showPage('login');
-    return;
-  }
-  
-  const p = posts.find(x => x.id === id);
-  const t = prompt('Edit title', p.title);
-  if (t === null) return;
-  
-  const c = prompt('Edit content', p.content);
-  if (c === null) return;
-  
-  const img = prompt('Edit image URL', p.image || '');
-  const credit = prompt('Edit image credit', p.imageCredit || '');
-  
-  if (t && c) {
-    p.title = t;
-    p.content = c;
-    p.image = img || null;
-    p.imageCredit = credit || null;
-    localStorage.setItem('posts', JSON.stringify(posts));
-    renderPosts();
-    renderAdmin();
-  }
+    if (!isAdmin) {
+        alert('Session expired. Please login again.');
+        showPage('login');
+        return;
+    }
+    
+    const p = posts.find(x => x.id === id);
+    const t = prompt('Edit title', p.title);
+    if (t === null) return;
+    
+    const c = prompt('Edit content', p.content);
+    if (c === null) return;
+    
+    const img = prompt('Edit image URL', p.image || '');
+    const credit = prompt('Edit image credit', p.imageCredit || '');
+    
+    if (t && c) {
+        p.title = t;
+        p.content = c;
+        p.image = img || null;
+        p.imageCredit = credit || null;
+        savePostsToLocalStorage();
+        renderPosts();
+        renderAdmin();
+    }
 }
 
 function deletePost(id) {
-  if (!isAdmin) {
-    alert('Session expired. Please login again.');
-    showPage('login');
-    return;
-  }
-  
-  const statusEl = document.getElementById('deleteStatus');
-  
-  if (confirm('Are you sure you want to delete this post?')) {
-    posts = posts.filter(p => p.id !== id);
-    localStorage.setItem('posts', JSON.stringify(posts));
+    if (!isAdmin) {
+        alert('Session expired. Please login again.');
+        showPage('login');
+        return;
+    }
     
-    // Show delete success message
-    statusEl.innerText = '🗑️ Post deleted successfully!';
-    statusEl.style.color = '#ef4444';
+    const statusEl = document.getElementById('deleteStatus');
     
-    // Update both views immediately
-    renderPosts();
-    renderAdmin();
-    
-    // Auto-hide delete message after 3 seconds
-    setTimeout(() => {
-      statusEl.innerText = '';
-    }, 3000);
-  }
+    if (confirm('Are you sure you want to delete this post?')) {
+        posts = posts.filter(p => p.id !== id);
+        savePostsToLocalStorage();
+        
+        // Show delete success message
+        statusEl.innerText = '🗑️ Post deleted successfully!';
+        statusEl.style.color = '#ef4444';
+        
+        // Update both views immediately
+        renderPosts();
+        renderAdmin();
+        
+        // Auto-hide delete message after 3 seconds
+        setTimeout(() => {
+            statusEl.innerText = '';
+        }, 3000);
+    }
 }
 
 function sendContact() {
-  const n = document.getElementById('cname').value.trim();
-  const e = document.getElementById('cemail').value.trim();
-  const m = document.getElementById('cmessage').value.trim();
-  const statusEl = document.getElementById('cstatus');
-  
-  if (!n || !e || !m) {
-    statusEl.innerText = 'Please fill all fields';
-    statusEl.style.color = '#ef4444';
-    return;
-  }
-  
-  const contactData = {
-    name: n,
-    email: e,
-    message: m,
-    timestamp: new Date().toISOString()
-  };
-  
-  let contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
-  contacts.push(contactData);
-  localStorage.setItem('contacts', JSON.stringify(contacts));
-  
-  statusEl.innerText = 'Thank you! Your message has been sent.';
-  statusEl.style.color = '#10b981';
-  
-  // Clear form
-  document.getElementById('cname').value = '';
-  document.getElementById('cemail').value = '';
-  document.getElementById('cmessage').value = '';
+    const n = document.getElementById('cname').value.trim();
+    const e = document.getElementById('cemail').value.trim();
+    const m = document.getElementById('cmessage').value.trim();
+    const statusEl = document.getElementById('cstatus');
+    
+    if (!n || !e || !m) {
+        statusEl.innerText = 'Please fill all fields';
+        statusEl.style.color = '#ef4444';
+        return;
+    }
+    
+    const contactData = {
+        name: n,
+        email: e,
+        message: m,
+        timestamp: new Date().toISOString()
+    };
+    
+    let contacts = JSON.parse(localStorage.getItem('contacts') || '[]');
+    contacts.push(contactData);
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+    
+    statusEl.innerText = 'Thank you! Your message has been sent.';
+    statusEl.style.color = '#10b981';
+    
+    // Clear form
+    document.getElementById('cname').value = '';
+    document.getElementById('cemail').value = '';
+    document.getElementById('cmessage').value = '';
 }
 
 // Slider functionality
@@ -1355,23 +1428,63 @@ const sliderTrack = document.getElementById('sliderTrack');
 const sliderDots = document.querySelectorAll('.slider-dot');
 
 function goToSlide(index) {
-  currentSlide = index;
-  sliderTrack.style.transform = `translateX(-${currentSlide * 100}%)`;
-  
-  sliderDots.forEach((dot, i) => {
-    dot.classList.toggle('active', i === currentSlide);
-  });
+    currentSlide = index;
+    sliderTrack.style.transform = `translateX(-${currentSlide * 100}%)`;
+    
+    sliderDots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === currentSlide);
+    });
 }
 
 // Auto-advance slides every 5 seconds
 let sliderInterval = setInterval(() => {
-  currentSlide = (currentSlide + 1) % 4;
-  goToSlide(currentSlide);
+    currentSlide = (currentSlide + 1) % 4;
+    goToSlide(currentSlide);
 }, 5000);
+
+// Check session and update admin indicator
+function checkSession() {
+    if (isAdmin) {
+        document.getElementById('adminBadge').style.display = 'inline-block';
+        // If already logged in and on login page, redirect to admin
+        if (window.location.hash === '#login' || document.querySelector('[data-page="login"]').style.display === 'block') {
+            showPage('admin');
+        }
+    }
+    updateAdminIndicator();
+}
+
+function updateAdminIndicator() {
+    const badge = document.getElementById('adminBadge');
+    if (isAdmin) {
+        badge.style.display = 'inline-block';
+        badge.textContent = '● Live';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
+// Image preview functionality
+document.getElementById('imageUrl').addEventListener('input', function() {
+    const imageUrl = this.value.trim();
+    const imagePreview = document.getElementById('imagePreview');
+    
+    if (imageUrl) {
+        imagePreview.innerHTML = `<img src="${imageUrl}" class="post-image" alt="Image preview" onerror="this.style.display='none'; imagePreview.innerHTML='<div style=\'text-align:center\'><i class=\'fas fa-exclamation-triangle\'></i><div>Invalid Image URL</div></div>'" />`;
+    } else {
+        imagePreview.innerHTML = `
+            <div style="text-align:center">
+                <i class="fas fa-image"></i>
+                <div>Post Image Preview</div>
+                <div class="image-help">Add image URL below to see preview</div>
+            </div>
+        `;
+    }
+});
 
 // Initialize the page
 checkSession();
-renderPosts();
+loadPosts(); // Load posts from GitHub
 showPage('home');
 </script>
 </body>
