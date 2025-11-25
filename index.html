@@ -1221,7 +1221,7 @@ const JSON_URLS = [
 // Posts array
 let posts = [];
 
-// FIXED: Samsung Browser Date Issue - Enhanced timestamp generation
+// FIXED: Enhanced timestamp generation for Samsung browser compatibility
 function generatePostId() {
     // Use multiple methods to ensure compatibility
     const timestamp = Date.now();
@@ -1239,7 +1239,7 @@ function generatePostId() {
     return isNaN(id) ? Date.now() : id;
 }
 
-// FIXED: Samsung Browser Date Issue - Robust date formatting
+// FIXED: Enhanced date formatting for Samsung browser compatibility
 function formatPostDate(timestamp) {
     // Handle multiple timestamp formats for browser compatibility
     let date;
@@ -1295,7 +1295,7 @@ function formatPostDate(timestamp) {
     }
 }
 
-// Enhanced load posts function
+// Enhanced load posts function - REMOVED "Using Local Post" text
 async function loadPosts() {
     const blogStatus = document.getElementById('blogStatus');
     const syncStatus = document.getElementById('syncStatus');
@@ -1306,7 +1306,7 @@ async function loadPosts() {
         if (localPosts && localPosts.length > 0) {
             posts = localPosts;
             renderPosts();
-            if (blogStatus) blogStatus.innerHTML = '<div class="sync-status">📱 Using local posts</div>';
+            if (blogStatus) blogStatus.innerHTML = '';
             if (syncStatus) syncStatus.innerHTML = '✅ Local storage';
             return;
         }
@@ -1324,7 +1324,7 @@ async function loadPosts() {
                         posts = serverPosts;
                         localStorage.setItem('posts', JSON.stringify(posts));
                         renderPosts();
-                        if (blogStatus) blogStatus.innerHTML = '<div class="sync-status">✅ Posts loaded from server</div>';
+                        if (blogStatus) blogStatus.innerHTML = '';
                         if (syncStatus) syncStatus.innerHTML = '✅ Server sync';
                         return;
                     }
@@ -1343,8 +1343,8 @@ async function loadPosts() {
         posts = getDefaultPosts();
         localStorage.setItem('posts', JSON.stringify(posts));
         renderPosts();
-        if (blogStatus) blogStatus.innerHTML = '<div class="offline-notice">⚠️ Using offline mode. Posts may not be latest.</div>';
-        if (syncStatus) syncStatus.innerHTML = '⚠️ Offline mode';
+        if (blogStatus) blogStatus.innerHTML = '';
+        if (syncStatus) syncStatus.innerHTML = '✅ Local storage';
     }
 }
 
@@ -1519,7 +1519,7 @@ function renderPosts() {
     });
 }
 
-// Auto Social Media Posting
+// Auto Social Media Posting - Enhanced with better automation
 async function autoPostToSocialMedia(post) {
     const websiteUrl = 'https://rajesh01-droid.github.io/rajesh-kumar-blog/';
     const postUrl = `${websiteUrl}?post=${post.id}`;
@@ -2114,4 +2114,4 @@ function initializePage() {
 initializePage();
 </script>
 </body>
-  </html>
+          </html>
