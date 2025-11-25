@@ -10,7 +10,7 @@
   gtag('config', 'G-HJJCXCVFS9');
 </script>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>Rajesh Kumar — IT Professional Blog</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
@@ -35,6 +35,7 @@ html, body {
   overflow-x: hidden;
   width: 100%;
   position: relative;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -51,7 +52,7 @@ body {
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
-  z-index: 40;
+  z-index: 100;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   width: 100%;
   max-width: 100%;
@@ -60,12 +61,12 @@ body {
 .header .wrap {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 16px 18px;
+  padding: 12px 16px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  gap: 12px;
   width: 100%;
-  box-sizing: border-box;
 }
 
 .brand {
@@ -73,11 +74,14 @@ body {
   align-items: center;
   gap: 12px;
   max-width: 100%;
+  width: 100%;
+  justify-content: center;
+  text-align: center;
 }
 
 .logo {
-  height: 44px;
-  width: 44px;
+  height: 40px;
+  width: 40px;
   border-radius: var(--radius);
   background: linear-gradient(135deg, var(--accent), #7c3aed);
   display: flex;
@@ -85,59 +89,64 @@ body {
   justify-content: center;
   color: white;
   font-weight: 700;
-  font-size: 18px;
+  font-size: 16px;
   flex-shrink: 0;
+}
+
+.brand-text {
+  flex: 1;
+}
+
+.brand-text div:first-child {
+  font-weight: 800;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.brand-text .small {
+  font-size: 12px;
+  margin-top: 2px;
 }
 
 nav {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 8px;
   max-width: 100%;
+  width: 100%;
+  justify-content: center;
 }
 
 nav a {
   color: var(--muted);
   text-decoration: none;
   font-weight: 600;
-  font-size: 15px;
+  font-size: 13px;
   transition: var(--transition);
   position: relative;
-  padding: 6px 0;
+  padding: 6px 8px;
   white-space: nowrap;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #f8fafc;
 }
 
 nav a:hover {
   color: var(--accent);
-}
-
-nav a::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: var(--accent);
-  transition: var(--transition);
-}
-
-nav a:hover::after {
-  width: 100%;
+  background: white;
 }
 
 .container {
   max-width: 1100px;
-  margin: 28px auto;
-  padding: 0 18px;
+  margin: 20px auto;
+  padding: 0 16px;
   width: 100%;
-  box-sizing: border-box;
 }
 
 .grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
   width: 100%;
 }
 
@@ -145,11 +154,10 @@ nav a:hover::after {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 24px;
+  padding: 20px;
   box-shadow: var(--shadow);
   transition: var(--transition);
   width: 100%;
-  box-sizing: border-box;
 }
 
 .card:hover {
@@ -178,14 +186,14 @@ nav a:hover::after {
 }
 
 .meta {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--muted);
   margin-bottom: 10px;
 }
 
 .btn {
   display: inline-block;
-  padding: 10px 18px;
+  padding: 10px 16px;
   border-radius: 8px;
   background: var(--accent);
   color: white;
@@ -195,6 +203,7 @@ nav a:hover::after {
   cursor: pointer;
   transition: var(--transition);
   font-size: 14px;
+  text-align: center;
 }
 
 .btn:hover {
@@ -232,7 +241,6 @@ nav a:hover::after {
   font-family: inherit;
   font-size: 14px;
   transition: var(--transition);
-  box-sizing: border-box;
 }
 
 .input:focus, textarea:focus {
@@ -246,15 +254,14 @@ nav a:hover::after {
   margin: 40px auto 20px;
   color: var(--muted);
   font-size: 14px;
-  padding: 20px 18px;
+  padding: 20px 16px;
   text-align: center;
   border-top: 1px solid var(--border);
   width: 100%;
-  box-sizing: border-box;
 }
 
 .login-box {
-  max-width: 420px;
+  max-width: 100%;
   margin: 0 auto;
   width: 100%;
 }
@@ -287,7 +294,6 @@ nav a:hover::after {
   background: #f8fafc;
   border-radius: 8px;
   height: 100%;
-  box-sizing: border-box;
 }
 
 .slider-nav {
@@ -326,8 +332,8 @@ nav a:hover::after {
 
 .social-links {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  flex-direction: column;
+  gap: 8px;
   margin-top: 12px;
   width: 100%;
 }
@@ -336,18 +342,15 @@ nav a:hover::after {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 10px 12px;
   background: #f8fafc;
   border-radius: 8px;
   text-decoration: none;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
   transition: var(--transition);
   border: 1px solid var(--border);
-  flex: 1;
-  min-width: 120px;
-  justify-content: center;
-  box-sizing: border-box;
+  width: 100%;
 }
 
 .social-link:hover {
@@ -359,6 +362,8 @@ nav a:hover::after {
 
 .social-link i {
   font-size: 16px;
+  width: 20px;
+  text-align: center;
 }
 
 .publish-status {
@@ -381,7 +386,6 @@ nav a:hover::after {
   line-height: 1.6;
   margin-top: 10px;
   width: 100%;
-  word-wrap: break-word;
 }
 
 .read-more {
@@ -406,12 +410,11 @@ nav a:hover::after {
 
 .post-image {
   width: 100%;
-  max-height: 400px;
+  max-height: 200px;
   object-fit: cover;
   border-radius: 8px;
   margin-bottom: 15px;
   border: 1px solid var(--border);
-  box-sizing: border-box;
 }
 
 .image-credit {
@@ -423,7 +426,7 @@ nav a:hover::after {
 
 .image-placeholder {
   width: 100%;
-  height: 200px;
+  height: 150px;
   background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
   border-radius: 8px;
   display: flex;
@@ -432,7 +435,6 @@ nav a:hover::after {
   color: var(--muted);
   margin-bottom: 15px;
   border: 1px dashed var(--border);
-  box-sizing: border-box;
 }
 
 .image-placeholder i {
@@ -449,36 +451,17 @@ nav a:hover::after {
 .admin-indicator {
   background: #10b981;
   color: white;
-  padding: 4px 8px;
+  padding: 3px 6px;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
-  margin-left: 10px;
+  margin-left: 6px;
 }
 
 .posts-container {
-  max-height: 600px;
-  overflow-y: auto;
-  padding-right: 10px;
+  max-height: none;
+  overflow-y: visible;
   width: 100%;
-}
-
-.posts-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.posts-container::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 3px;
-}
-
-.posts-container::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
-}
-
-.posts-container::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
 }
 
 .toggle-section {
@@ -497,7 +480,6 @@ nav a:hover::after {
   border: 1px solid var(--border);
   transition: var(--transition);
   width: 100%;
-  box-sizing: border-box;
 }
 
 .toggle-header:hover {
@@ -521,7 +503,6 @@ nav a:hover::after {
   margin-top: 15px;
   padding: 0 4px;
   width: 100%;
-  box-sizing: border-box;
 }
 
 .toggle-content.show {
@@ -532,7 +513,7 @@ nav a:hover::after {
   margin-top: 0;
   margin-bottom: 16px;
   color: #0f172a;
-  font-size: 24px;
+  font-size: 22px;
   position: relative;
   padding-bottom: 10px;
   word-wrap: break-word;
@@ -550,7 +531,7 @@ nav a:hover::after {
 }
 
 .section-title {
-  margin-top: 24px;
+  margin-top: 20px;
   margin-bottom: 12px;
   color: #0f172a;
   font-size: 18px;
@@ -577,199 +558,124 @@ hr {
   width: 100%;
 }
 
-/* Mobile Responsiveness */
-@media (max-width: 880px) {
-  .grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-  
+/* Desktop Styles */
+@media (min-width: 768px) {
   .header .wrap {
-    padding: 12px;
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  nav {
-    width: 100%;
-    justify-content: center;
-    gap: 10px;
-  }
-  
-  nav a {
-    font-size: 14px;
-    padding: 4px 8px;
-  }
-  
-  .logo {
-    height: 40px;
-    width: 40px;
-  }
-  
-  .social-links {
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .social-link {
-    min-width: auto;
-    justify-content: flex-start;
-  }
-  
-  .container {
-    margin: 20px auto;
-    padding: 0 12px;
-  }
-  
-  .card {
-    padding: 18px;
-  }
-  
-  .page-title {
-    font-size: 22px;
-  }
-  
-  .btn {
-    padding: 8px 16px;
-    font-size: 13px;
-  }
-  
-  .toggle-header h3 {
-    font-size: 15px;
-  }
-  
-  .posts-container {
-    max-height: none;
-    overflow-y: visible;
-  }
-  
-  .post-image {
-    max-height: 250px;
-  }
-  
-  .slider-container {
-    height: 160px;
-  }
-  
-  .slide {
-    padding: 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  .header .wrap {
-    padding: 10px;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 16px 18px;
   }
   
   .brand {
-    flex-direction: column;
-    text-align: center;
-    gap: 8px;
-    width: 100%;
+    justify-content: flex-start;
+    text-align: left;
+    width: auto;
   }
   
   nav {
-    flex-wrap: wrap;
-    gap: 8px;
-    width: 100%;
-    justify-content: space-around;
+    width: auto;
+    justify-content: flex-end;
   }
   
   nav a {
-    font-size: 13px;
-    padding: 4px 6px;
-    flex: 1;
-    text-align: center;
-    min-width: 0;
+    border: none;
+    background: transparent;
+    padding: 6px 0;
+    margin-left: 20px;
+  }
+  
+  .grid {
+    flex-direction: row;
+    grid-template-columns: 2fr 1fr;
+    display: grid;
+    gap: 28px;
   }
   
   .container {
-    margin: 15px auto;
-    padding: 0 10px;
+    margin: 28px auto;
+    padding: 0 18px;
   }
   
   .card {
-    padding: 15px;
+    padding: 24px;
+  }
+  
+  .social-links {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .social-link {
+    flex: 1;
+    min-width: 120px;
+    justify-content: center;
+  }
+  
+  .page-title {
+    font-size: 24px;
+  }
+  
+  .logo {
+    height: 44px;
+    width: 44px;
+    font-size: 18px;
+  }
+  
+  nav a {
+    font-size: 15px;
+    margin-left: 20px;
+  }
+  
+  .posts-container {
+    max-height: 600px;
+    overflow-y: auto;
+  }
+  
+  .post-image {
+    max-height: 400px;
+  }
+  
+  .image-placeholder {
+    height: 200px;
+  }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 360px) {
+  .header .wrap {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+  
+  .brand-text div:first-child {
+    font-size: 16px;
+  }
+  
+  .brand-text .small {
+    font-size: 11px;
+  }
+  
+  nav a {
+    font-size: 12px;
+    padding: 5px 6px;
+  }
+  
+  .container {
+    padding: 0 12px;
+    margin: 15px auto;
+  }
+  
+  .card {
+    padding: 16px;
   }
   
   .page-title {
     font-size: 20px;
   }
   
-  .post h3 {
-    font-size: 16px;
-  }
-  
-  .slider-container {
-    height: 180px;
-  }
-  
-  .social-link {
-    padding: 6px 10px;
-    font-size: 12px;
-  }
-  
-  .admin-indicator {
-    font-size: 10px;
-    padding: 3px 6px;
-    margin-left: 5px;
-  }
-  
-  .toggle-header {
-    padding: 10px 12px;
-  }
-  
-  .toggle-header h3 {
-    font-size: 14px;
-  }
-  
   .btn {
-    width: 100%;
-    margin-bottom: 8px;
-  }
-  
-  .posts-container {
-    padding-right: 0;
-  }
-}
-
-/* Extra small devices */
-@media (max-width: 360px) {
-  .header .wrap {
-    padding: 8px;
-  }
-  
-  nav a {
-    font-size: 12px;
-    padding: 3px 4px;
-  }
-  
-  .container {
-    padding: 0 8px;
-  }
-  
-  .card {
-    padding: 12px;
-  }
-  
-  .page-title {
-    font-size: 18px;
-  }
-  
-  .post h3 {
-    font-size: 15px;
-  }
-  
-  .brand > div {
-    text-align: center;
-  }
-  
-  .brand > div div:first-child {
-    font-size: 16px;
-  }
-  
-  .brand .small {
-    font-size: 12px;
+    padding: 8px 14px;
+    font-size: 13px;
   }
 }
 </style>
@@ -779,8 +685,8 @@ hr {
   <div class="wrap">
     <div class="brand">
       <div class="logo">RK</div>
-      <div>
-        <div style="font-weight:800; font-size: 18px;">Rajesh Kumar</div>
+      <div class="brand-text">
+        <div>Rajesh Kumar</div>
         <div class="small">IT Professional • System & Network Administration • Data Analysis</div>
       </div>
     </div>
@@ -806,9 +712,9 @@ hr {
       <section id="home" class="card" data-page="home">
         <h1 class="page-title">Welcome to My Professional Blog</h1>
         <p class="small">IT Professional with 8+ years experience in system & network administration, data processing and team leadership. I build efficient systems, manage data workflows, and support organizations with technical solutions.</p>
-        <div style="margin-top:24px">
+        <div style="margin-top:20px; display: flex; gap: 10px; flex-wrap: wrap;">
           <button class="btn" onclick="showPage('blog')">Browse Posts</button>
-          <button class="btn" style="background:#0ea5a1;margin-left:10px" onclick="showPage('login')">Admin Login</button>
+          <button class="btn" style="background:#0ea5a1" onclick="showPage('login')">Admin Login</button>
         </div>
       </section>
 
@@ -874,7 +780,7 @@ hr {
           <h2 class="page-title" style="text-align:center">Admin Login</h2>
           <input class="input" id="user" placeholder="Username" />
           <input class="input" id="pass" type="password" placeholder="Password" />
-          <div style="text-align:right; margin-top:16px">
+          <div style="text-align:center; margin-top:16px">
             <button onclick="login()" class="btn">Sign in</button>
           </div>
           <div id="loginStatus" class="login-status"></div>
@@ -946,7 +852,7 @@ hr {
         <input class="input" id="cname" placeholder="Your name" />
         <input class="input" id="cemail" placeholder="Your email" />
         <textarea class="input" id="cmessage" placeholder="Message" rows="5"></textarea>
-        <div style="text-align:right; margin-top:16px">
+        <div style="text-align:center; margin-top:16px">
           <button onclick="sendContact()" class="btn">Send Message</button>
         </div>
         <p id="cstatus" class="small" style="margin-top:16px"></p>
@@ -968,7 +874,7 @@ hr {
       </section>
     </div>
 
-    <!-- sidebar - Now includes blog posts -->
+    <!-- sidebar -->
     <aside class="sidebar">
       <!-- Blog posts section -->
       <div class="card">
@@ -976,7 +882,7 @@ hr {
         <div class="posts-container" id="sidebarPosts"></div>
       </div>
 
-      <div class="card" style="margin-top:24px">
+      <div class="card" style="margin-top:20px">
         <h4>Professional Summary</h4>
         <p class="small">Energetic, ambitious IT professional with 8+ years' experience. Excellent in working with others to achieve objectives on time with excellence. Improved performance, operations and productivity in previous roles.</p>
         <hr>
@@ -989,7 +895,7 @@ hr {
         </ul>
       </div>
 
-      <div class="card" style="margin-top:24px">
+      <div class="card" style="margin-top:20px">
         <h4>Contact Information</h4>
         <p class="small">Karachi, Pakistan</p>
         <p class="small"><i class="fas fa-phone"></i> +92 332 246 3588</p>
@@ -1019,7 +925,7 @@ hr {
         </div>
       </div>
 
-      <div class="card" style="margin-top:24px">
+      <div class="card" style="margin-top:20px">
         <h4>Work Experience Snapshot</h4>
         <div class="slider-container">
           <div class="slider-track" id="sliderTrack">
@@ -1086,50 +992,23 @@ function updateAdminIndicator() {
 }
 
 // Posts and admin logic
-// Enhanced data persistence with backup
-function getPosts() {
-  // Try to get posts from localStorage first
-  let posts = JSON.parse(localStorage.getItem('posts'));
-  
-  // If no posts in localStorage, try to get from backup (simulating server)
-  if (!posts || posts.length === 0) {
-    posts = JSON.parse(localStorage.getItem('postsBackup'));
+let posts = JSON.parse(localStorage.getItem('posts')) || [
+  {
+    id: 1,
+    title: 'How IT Infrastructure Management Impacts Organizational Efficiency',
+    content: 'Effective IT infrastructure management is crucial for modern organizations to maintain operational efficiency and competitive advantage. In my experience managing IT systems across various organizations, I\'ve observed that a well-maintained infrastructure directly impacts productivity, security, and scalability. Key components include network configuration, server management, data security protocols, and user support systems. Regular audits, proactive maintenance, and strategic upgrades are essential to prevent downtime and ensure business continuity. Organizations that invest in robust IT infrastructure typically experience fewer disruptions, faster response times, and better resource utilization. Implementing comprehensive IT policies and training programs further enhances system utilization and reduces technical issues. In today\'s digital landscape, a reliable IT infrastructure isn\'t just a support function—it\'s a strategic asset that drives organizational success.',
+    image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+    imageCredit: 'Source: Unsplash'
+  },
+  {
+    id: 2,
+    title: 'The Importance of Data Accuracy in Reporting Systems',
+    content: 'Accurate data is the foundation of effective decision-making in any organization. Through my work with DHIS, SAS, and custom reporting systems, I\'ve seen how data quality directly impacts strategic planning and operational efficiency. Data accuracy begins with proper collection methods, validation processes, and consistent monitoring. Comparative analysis between different systems, like DHIS and SAS, helps identify discrepancies and maintain data integrity. Regular audits, automated validation checks, and clear documentation protocols are essential practices. When data is reliable, organizations can make informed decisions, allocate resources effectively, and demonstrate accountability to stakeholders. Investing in data management processes ultimately saves time and resources while improving overall organizational performance. In my current role, maintaining data accuracy has been crucial for generating actionable insights and supporting evidence-based decision making.',
+    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+    imageCredit: 'Source: Unsplash'
   }
-  
-  // If still no posts, use default posts
-  if (!posts || posts.length === 0) {
-    posts = [
-      {
-        id: 1,
-        title: 'How IT Infrastructure Management Impacts Organizational Efficiency',
-        content: 'Effective IT infrastructure management is crucial for modern organizations to maintain operational efficiency and competitive advantage. In my experience managing IT systems across various organizations, I\'ve observed that a well-maintained infrastructure directly impacts productivity, security, and scalability. Key components include network configuration, server management, data security protocols, and user support systems. Regular audits, proactive maintenance, and strategic upgrades are essential to prevent downtime and ensure business continuity. Organizations that invest in robust IT infrastructure typically experience fewer disruptions, faster response times, and better resource utilization. Implementing comprehensive IT policies and training programs further enhances system utilization and reduces technical issues. In today\'s digital landscape, a reliable IT infrastructure isn\'t just a support function—it\'s a strategic asset that drives organizational success.',
-        image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-        imageCredit: 'Source: Unsplash'
-      },
-      {
-        id: 2,
-        title: 'The Importance of Data Accuracy in Reporting Systems',
-        content: 'Accurate data is the foundation of effective decision-making in any organization. Through my work with DHIS, SAS, and custom reporting systems, I\'ve seen how data quality directly impacts strategic planning and operational efficiency. Data accuracy begins with proper collection methods, validation processes, and consistent monitoring. Comparative analysis between different systems, like DHIS and SAS, helps identify discrepancies and maintain data integrity. Regular audits, automated validation checks, and clear documentation protocols are essential practices. When data is reliable, organizations can make informed decisions, allocate resources effectively, and demonstrate accountability to stakeholders. Investing in data management processes ultimately saves time and resources while improving overall organizational performance. In my current role, maintaining data accuracy has been crucial for generating actionable insights and supporting evidence-based decision making.',
-        image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-        imageCredit: 'Source: Unsplash'
-      }
-    ];
-  }
-  
-  // Save to both localStorage and backup
-  localStorage.setItem('posts', JSON.stringify(posts));
-  localStorage.setItem('postsBackup', JSON.stringify(posts));
-  
-  return posts;
-}
-
-function savePosts(posts) {
-  // Save to both localStorage and backup for better persistence
-  localStorage.setItem('posts', JSON.stringify(posts));
-  localStorage.setItem('postsBackup', JSON.stringify(posts));
-}
-
-let posts = getPosts();
+];
+localStorage.setItem('posts', JSON.stringify(posts));
 
 // Image preview functionality
 document.getElementById('imageUrl').addEventListener('input', function() {
@@ -1328,7 +1207,7 @@ function addPost() {
     image: imageUrl || null,
     imageCredit: imageCredit || null
   });
-  savePosts(posts);
+  localStorage.setItem('posts', JSON.stringify(posts));
   
   // Show success message
   statusEl.innerText = '✅ Post published successfully!' + (imageUrl ? ' (with image)' : '');
@@ -1404,7 +1283,7 @@ function editPost(id) {
     p.content = c;
     p.image = img || null;
     p.imageCredit = credit || null;
-    savePosts(posts);
+    localStorage.setItem('posts', JSON.stringify(posts));
     renderPosts();
     renderAdmin();
   }
@@ -1421,7 +1300,7 @@ function deletePost(id) {
   
   if (confirm('Are you sure you want to delete this post?')) {
     posts = posts.filter(p => p.id !== id);
-    savePosts(posts);
+    localStorage.setItem('posts', JSON.stringify(posts));
     
     // Show delete success message
     statusEl.innerText = '🗑️ Post deleted successfully!';
