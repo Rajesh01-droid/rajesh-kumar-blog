@@ -76,14 +76,20 @@ body {
   font-size: 18px;
 }
 
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 nav a {
-  margin-left: 20px;
   color: var(--muted);
   text-decoration: none;
   font-weight: 600;
   font-size: 15px;
   transition: var(--transition);
   position: relative;
+  padding: 6px 0;
 }
 
 nav a:hover {
@@ -93,7 +99,7 @@ nav a:hover {
 nav a::after {
   content: '';
   position: absolute;
-  bottom: -5px;
+  bottom: 0;
   left: 0;
   width: 0;
   height: 2px;
@@ -522,9 +528,11 @@ hr {
   margin: 20px 0;
 }
 
+/* Mobile Responsiveness */
 @media (max-width: 880px) {
   .grid {
     grid-template-columns: 1fr;
+    gap: 20px;
   }
   
   .header .wrap {
@@ -534,14 +542,14 @@ hr {
   }
   
   nav {
-    display: flex;
-    flex-wrap: wrap;
+    width: 100%;
     justify-content: center;
-    gap: 12px;
+    gap: 10px;
   }
   
   nav a {
-    margin-left: 0;
+    font-size: 14px;
+    padding: 4px 8px;
   }
   
   .logo {
@@ -556,6 +564,99 @@ hr {
   
   .social-link {
     min-width: auto;
+    justify-content: flex-start;
+  }
+  
+  .container {
+    margin: 20px auto;
+    padding: 0 12px;
+  }
+  
+  .card {
+    padding: 18px;
+  }
+  
+  .page-title {
+    font-size: 22px;
+  }
+  
+  .btn {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+  
+  .toggle-header h3 {
+    font-size: 15px;
+  }
+  
+  .posts-container {
+    max-height: none;
+    overflow-y: visible;
+  }
+  
+  .post-image {
+    max-height: 250px;
+  }
+  
+  .slider-container {
+    height: 160px;
+  }
+  
+  .slide {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header .wrap {
+    padding: 10px;
+  }
+  
+  .brand {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+  }
+  
+  nav {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  nav a {
+    font-size: 13px;
+    padding: 4px 6px;
+  }
+  
+  .container {
+    margin: 15px auto;
+  }
+  
+  .card {
+    padding: 15px;
+  }
+  
+  .page-title {
+    font-size: 20px;
+  }
+  
+  .post h3 {
+    font-size: 16px;
+  }
+  
+  .slider-container {
+    height: 180px;
+  }
+  
+  .social-link {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  
+  .admin-indicator {
+    font-size: 10px;
+    padding: 3px 6px;
+    margin-left: 5px;
   }
 }
 </style>
@@ -872,23 +973,50 @@ function updateAdminIndicator() {
 }
 
 // Posts and admin logic
-let posts = JSON.parse(localStorage.getItem('posts')) || [
-  {
-    id: 1,
-    title: 'How IT Infrastructure Management Impacts Organizational Efficiency',
-    content: 'Effective IT infrastructure management is crucial for modern organizations to maintain operational efficiency and competitive advantage. In my experience managing IT systems across various organizations, I\'ve observed that a well-maintained infrastructure directly impacts productivity, security, and scalability. Key components include network configuration, server management, data security protocols, and user support systems. Regular audits, proactive maintenance, and strategic upgrades are essential to prevent downtime and ensure business continuity. Organizations that invest in robust IT infrastructure typically experience fewer disruptions, faster response times, and better resource utilization. Implementing comprehensive IT policies and training programs further enhances system utilization and reduces technical issues. In today\'s digital landscape, a reliable IT infrastructure isn\'t just a support function—it\'s a strategic asset that drives organizational success.',
-    image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-    imageCredit: 'Source: Unsplash'
-  },
-  {
-    id: 2,
-    title: 'The Importance of Data Accuracy in Reporting Systems',
-    content: 'Accurate data is the foundation of effective decision-making in any organization. Through my work with DHIS, SAS, and custom reporting systems, I\'ve seen how data quality directly impacts strategic planning and operational efficiency. Data accuracy begins with proper collection methods, validation processes, and consistent monitoring. Comparative analysis between different systems, like DHIS and SAS, helps identify discrepancies and maintain data integrity. Regular audits, automated validation checks, and clear documentation protocols are essential practices. When data is reliable, organizations can make informed decisions, allocate resources effectively, and demonstrate accountability to stakeholders. Investing in data management processes ultimately saves time and resources while improving overall organizational performance. In my current role, maintaining data accuracy has been crucial for generating actionable insights and supporting evidence-based decision making.',
-    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-    imageCredit: 'Source: Unsplash'
+// Enhanced data persistence with backup
+function getPosts() {
+  // Try to get posts from localStorage first
+  let posts = JSON.parse(localStorage.getItem('posts'));
+  
+  // If no posts in localStorage, try to get from backup (simulating server)
+  if (!posts || posts.length === 0) {
+    posts = JSON.parse(localStorage.getItem('postsBackup'));
   }
-];
-localStorage.setItem('posts', JSON.stringify(posts));
+  
+  // If still no posts, use default posts
+  if (!posts || posts.length === 0) {
+    posts = [
+      {
+        id: 1,
+        title: 'How IT Infrastructure Management Impacts Organizational Efficiency',
+        content: 'Effective IT infrastructure management is crucial for modern organizations to maintain operational efficiency and competitive advantage. In my experience managing IT systems across various organizations, I\'ve observed that a well-maintained infrastructure directly impacts productivity, security, and scalability. Key components include network configuration, server management, data security protocols, and user support systems. Regular audits, proactive maintenance, and strategic upgrades are essential to prevent downtime and ensure business continuity. Organizations that invest in robust IT infrastructure typically experience fewer disruptions, faster response times, and better resource utilization. Implementing comprehensive IT policies and training programs further enhances system utilization and reduces technical issues. In today\'s digital landscape, a reliable IT infrastructure isn\'t just a support function—it\'s a strategic asset that drives organizational success.',
+        image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+        imageCredit: 'Source: Unsplash'
+      },
+      {
+        id: 2,
+        title: 'The Importance of Data Accuracy in Reporting Systems',
+        content: 'Accurate data is the foundation of effective decision-making in any organization. Through my work with DHIS, SAS, and custom reporting systems, I\'ve seen how data quality directly impacts strategic planning and operational efficiency. Data accuracy begins with proper collection methods, validation processes, and consistent monitoring. Comparative analysis between different systems, like DHIS and SAS, helps identify discrepancies and maintain data integrity. Regular audits, automated validation checks, and clear documentation protocols are essential practices. When data is reliable, organizations can make informed decisions, allocate resources effectively, and demonstrate accountability to stakeholders. Investing in data management processes ultimately saves time and resources while improving overall organizational performance. In my current role, maintaining data accuracy has been crucial for generating actionable insights and supporting evidence-based decision making.',
+        image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+        imageCredit: 'Source: Unsplash'
+      }
+    ];
+  }
+  
+  // Save to both localStorage and backup
+  localStorage.setItem('posts', JSON.stringify(posts));
+  localStorage.setItem('postsBackup', JSON.stringify(posts));
+  
+  return posts;
+}
+
+function savePosts(posts) {
+  // Save to both localStorage and backup for better persistence
+  localStorage.setItem('posts', JSON.stringify(posts));
+  localStorage.setItem('postsBackup', JSON.stringify(posts));
+}
+
+let posts = getPosts();
 
 // Image preview functionality
 document.getElementById('imageUrl').addEventListener('input', function() {
@@ -1087,7 +1215,7 @@ function addPost() {
     image: imageUrl || null,
     imageCredit: imageCredit || null
   });
-  localStorage.setItem('posts', JSON.stringify(posts));
+  savePosts(posts);
   
   // Show success message
   statusEl.innerText = '✅ Post published successfully!' + (imageUrl ? ' (with image)' : '');
@@ -1163,7 +1291,7 @@ function editPost(id) {
     p.content = c;
     p.image = img || null;
     p.imageCredit = credit || null;
-    localStorage.setItem('posts', JSON.stringify(posts));
+    savePosts(posts);
     renderPosts();
     renderAdmin();
   }
@@ -1180,7 +1308,7 @@ function deletePost(id) {
   
   if (confirm('Are you sure you want to delete this post?')) {
     posts = posts.filter(p => p.id !== id);
-    localStorage.setItem('posts', JSON.stringify(posts));
+    savePosts(posts);
     
     // Show delete success message
     statusEl.innerText = '🗑️ Post deleted successfully!';
@@ -1255,8 +1383,4 @@ renderPosts();
 showPage('home');
 </script>
 </body>
-
 </html>
-
-
-
