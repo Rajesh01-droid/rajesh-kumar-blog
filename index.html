@@ -750,6 +750,7 @@ hr {
     gap: 10px;
     margin: 20px 0;
     flex-wrap: wrap;
+    justify-content: center;
 }
 
 .share-btn {
@@ -763,6 +764,8 @@ hr {
     font-size: 14px;
     transition: all 0.3s ease;
     border: 1px solid;
+    min-width: 140px;
+    justify-content: center;
 }
 
 .share-twitter {
@@ -864,6 +867,55 @@ hr {
 .refresh-btn:hover {
     background: #7c3aed;
     transform: translateY(-1px);
+}
+
+/* Fix for full content layout */
+.full-content {
+    display: none;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border);
+    width: 100%;
+}
+
+.full-content.show {
+    display: block;
+}
+
+/* Improved social buttons layout */
+.social-share-container {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+.social-share-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    text-align: center;
+    color: var(--muted);
+}
+
+/* Enhanced post layout */
+.post-content-container {
+    position: relative;
+    overflow: hidden;
+}
+
+.post-excerpt {
+    transition: max-height 0.3s ease;
+}
+
+.post-excerpt.collapsed {
+    max-height: 200px;
+    overflow: hidden;
+}
+
+.post-excerpt.expanded {
+    max-height: none;
 }
 </style>
 </head>
@@ -1247,81 +1299,52 @@ const JSON_URLS = [
 // Posts array
 let posts = [];
 
-// FIXED: Enhanced timestamp generation for Samsung browser compatibility
+// SMART DATE FIX: Universal Date Handler for All Browsers
 function generatePostId() {
-    // Use multiple methods to ensure compatibility
-    const timestamp = Date.now();
-    
-    // Add random component and string conversion for Samsung browser
-    const random = Math.floor(Math.random() * 1000);
-    
-    // Create a string-based ID that works on all browsers
-    const idString = `${timestamp}${random}`;
-    
-    // Convert to number but ensure it's valid
-    const id = parseInt(idString);
-    
-    // Final validation - if invalid, use current timestamp only
-    return isNaN(id) ? Date.now() : id;
+    // Create a timestamp that works on all browsers
+    const now = new Date();
+    return now.getTime();
 }
 
-// FIXED: Enhanced date formatting for Samsung browser compatibility
+// SMART DATE FIX: Universal Date Formatter for All Browsers
 function formatPostDate(timestamp) {
-    // Handle multiple timestamp formats for browser compatibility
+    // Handle all possible timestamp formats
     let date;
     
-    // Check if timestamp is valid
-    if (!timestamp || timestamp === 0 || timestamp === '0') {
+    // Handle invalid timestamps
+    if (!timestamp || isNaN(timestamp) || timestamp <= 0) {
         return 'Recent';
     }
     
+    // Convert to proper date object
     try {
-        // Method 1: Try direct Date object
-        date = new Date(timestamp);
+        // Try parsing as number first
+        date = new Date(Number(timestamp));
         
-        // Method 2: If invalid, try parsing as number (Samsung browser fix)
-        if (isNaN(date.getTime())) {
-            const numericTimestamp = parseInt(timestamp);
-            date = new Date(numericTimestamp);
-        }
-        
-        // Method 3: If still invalid, try string parsing
+        // If invalid, try other methods
         if (isNaN(date.getTime())) {
             date = new Date(timestamp.toString());
         }
         
-        // Method 4: Final fallback - current date
+        // Final fallback to current date
         if (isNaN(date.getTime())) {
             date = new Date();
         }
-        
-    } catch (error) {
-        console.warn('Date parsing failed, using current date:', error);
+    } catch (e) {
+        console.warn('Date parsing error:', e);
         date = new Date();
     }
     
-    // Final validation
-    if (isNaN(date.getTime())) {
-        return 'Recent';
-    }
+    // Create date string manually for browser compatibility
+    const day = date.getDate();
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = monthNames[date.getMonth()];
+    const year = date.getFullYear();
     
-    // Format the date with fallbacks
-    try {
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    } catch (error) {
-        // Manual fallback format
-        const day = date.getDate();
-        const month = date.toLocaleString('en-US', { month: 'short' });
-        const year = date.getFullYear();
-        return `${day} ${month} ${year}`;
-    }
+    return `${day} ${month} ${year}`;
 }
 
-// Enhanced load posts function - REMOVED "Using Local Post" text
+// Enhanced load posts function
 async function loadPosts() {
     const blogStatus = document.getElementById('blogStatus');
     const syncStatus = document.getElementById('syncStatus');
@@ -1453,7 +1476,7 @@ function importPosts(files) {
     reader.readAsText(file);
 }
 
-// Enhanced renderPosts function with Samsung browser compatibility
+// SMART FIX: Enhanced renderPosts function with better layout
 function renderPosts() {
     const box = document.getElementById('posts');
     const sidebarBox = document.getElementById('sidebarPosts');
@@ -1487,27 +1510,30 @@ function renderPosts() {
             `;
         }
         
-        // FIXED: Use enhanced date formatting for Samsung browser
+        // Use enhanced date formatting
         const postDate = formatPostDate(p.id);
         
-        // Social Share Buttons
+        // SMART FIX: Improved social share buttons with better layout
         const shareButtons = `
-            <div class="social-share-buttons">
-                <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}&url=${encodeURIComponent(postUrl)}&hashtags=IT,Technology" 
-                   target="_blank" class="share-btn share-twitter">
-                    <i class="fab fa-twitter"></i>
-                    <span>Share on Twitter</span>
-                </a>
-                <a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(postUrl)}" 
-                   target="_blank" class="share-btn share-linkedin">
-                    <i class="fab fa-linkedin"></i>
-                    <span>Share on LinkedIn</span>
-                </a>
-                <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}" 
-                   target="_blank" class="share-btn share-facebook">
-                    <i class="fab fa-facebook"></i>
-                    <span>Share on Facebook</span>
-                </a>
+            <div class="social-share-container">
+                <div class="social-share-title">Share this post</div>
+                <div class="social-share-buttons">
+                    <a href="https://twitter.com/intent/tweet?text=${encodeURIComponent(shareMessage)}&url=${encodeURIComponent(postUrl)}&hashtags=IT,Technology" 
+                       target="_blank" class="share-btn share-twitter">
+                        <i class="fab fa-twitter"></i>
+                        <span>Twitter</span>
+                    </a>
+                    <a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(postUrl)}" 
+                       target="_blank" class="share-btn share-linkedin">
+                        <i class="fab fa-linkedin"></i>
+                        <span>LinkedIn</span>
+                    </a>
+                    <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}" 
+                       target="_blank" class="share-btn share-facebook">
+                        <i class="fab fa-facebook"></i>
+                        <span>Facebook</span>
+                    </a>
+                </div>
             </div>
         `;
         
@@ -1516,12 +1542,14 @@ function renderPosts() {
             <h3>${p.title}</h3>
             <div class="meta">Posted — ${postDate} | Views: ${p.views || 0} | Shares: ${p.shares || 0}</div>
             <div class="post-content">
-                <p>${p.content.substring(0, 400)}...</p>
-                <span class="read-more" onclick="toggleFullContent(this)">Read full article</span>
-                <div class="full-content">
+                <div class="post-excerpt collapsed" id="excerpt-${p.id}">
+                    <p>${p.content.substring(0, 400)}...</p>
+                </div>
+                <span class="read-more" onclick="toggleFullContent(${p.id})">Read full article</span>
+                <div class="full-content" id="full-${p.id}">
                     <p>${p.content}</p>
                     ${shareButtons}
-                    <span class="read-more" onclick="toggleFullContent(this)">Show less</span>
+                    <span class="read-more" onclick="toggleFullContent(${p.id})">Show less</span>
                 </div>
             </div>
         `;
@@ -1543,6 +1571,23 @@ function renderPosts() {
             sidebarBox.appendChild(sidebarEl);
         }
     });
+}
+
+// SMART FIX: Improved toggle function for full content
+function toggleFullContent(postId) {
+    const excerpt = document.getElementById(`excerpt-${postId}`);
+    const fullContent = document.getElementById(`full-${postId}`);
+    const readMore = excerpt.nextElementSibling;
+    
+    if (fullContent.style.display === 'none' || !fullContent.style.display) {
+        excerpt.style.display = 'none';
+        fullContent.style.display = 'block';
+        readMore.textContent = 'Show less';
+    } else {
+        excerpt.style.display = 'block';
+        fullContent.style.display = 'none';
+        readMore.textContent = 'Read full article';
+    }
 }
 
 // Auto Social Media Posting - Enhanced with better automation
@@ -1621,7 +1666,7 @@ async function addPost() {
         return;
     }
     
-    // FIXED: Use enhanced ID generation for Samsung browser
+    // Use enhanced ID generation
     const id = generatePostId();
     const newPost = { 
         id, 
@@ -1674,6 +1719,7 @@ async function addPost() {
     renderPosts();
     renderAdmin();
     updateSocialStats();
+    updateSocialAnalytics(); // Refresh analytics
     
     // Clear form
     document.getElementById('title').value = '';
@@ -1710,7 +1756,7 @@ function updateSocialStats() {
     document.getElementById('monthlyViews').textContent = monthlyViews;
 }
 
-// FIXED: Enhanced Social Media Analytics with real-time updates
+// SMART ANALYTICS: Enhanced Social Media Analytics with real-time updates
 function updateSocialAnalytics() {
     const totalShares = posts.reduce((sum, post) => sum + (post.shares || 0), 0);
     const sharedPosts = posts.filter(post => post.socialMediaPosted).length;
@@ -2078,21 +2124,6 @@ function sendContact() {
     document.getElementById('cmessage').value = '';
 }
 
-// Toggle full content view
-function toggleFullContent(element) {
-    const contentDiv = element.parentElement;
-    const fullContent = contentDiv.querySelector('.full-content');
-    const readMore = contentDiv.querySelector('.read-more');
-    
-    if (fullContent.style.display === 'none' || !fullContent.style.display) {
-        fullContent.style.display = 'block';
-        readMore.textContent = 'Show less';
-    } else {
-        fullContent.style.display = 'none';
-        readMore.textContent = 'Read full article';
-    }
-}
-
 // Toggle section visibility
 function toggleSection(sectionId) {
     const section = document.getElementById(sectionId);
@@ -2195,4 +2226,4 @@ function initializePage() {
 initializePage();
 </script>
 </body>
-</html>
+  </html>
