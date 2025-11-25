@@ -108,7 +108,7 @@ body {
   margin-top: 2px;
 }
 
-/* FIXED: Professional Mobile Navigation */
+/* Professional Mobile Navigation */
 nav {
   display: flex;
   flex-wrap: wrap;
@@ -856,7 +856,7 @@ hr {
         <div class="small">IT Professional • System & Network Administration • Data Analysis</div>
       </div>
     </div>
-    <!-- FIXED: Professional Mobile Navigation -->
+    <!-- Professional Mobile Navigation -->
     <nav>
       <a href="#" onclick="showPage('home')" class="active">Home</a>
       <a href="#" onclick="showPage('blog')">Blog</a>
@@ -993,6 +993,18 @@ hr {
               <p class="small" style="margin-top: 15px;"><strong>Sync Status:</strong> <span id="syncStatus">Checking...</span></p>
             </div>
             <div id="backupStatus" class="publish-status"></div>
+          </div>
+        </div>
+
+        <div class="toggle-section">
+          <div class="toggle-header" onclick="toggleSection('socialAnalytics')">
+            <h3>📊 Social Media Analytics</h3>
+            <span class="toggle-icon">▼</span>
+          </div>
+          <div class="toggle-content" id="socialAnalytics">
+            <div id="socialAnalyticsContent">
+              <!-- Social analytics will be inserted here -->
+            </div>
           </div>
         </div>
 
@@ -1209,7 +1221,81 @@ const JSON_URLS = [
 // Posts array
 let posts = [];
 
-// Enhanced load posts function with multiple fallbacks
+// FIXED: Samsung Browser Date Issue - Enhanced timestamp generation
+function generatePostId() {
+    // Use multiple methods to ensure compatibility
+    const timestamp = Date.now();
+    
+    // Add random component and string conversion for Samsung browser
+    const random = Math.floor(Math.random() * 1000);
+    
+    // Create a string-based ID that works on all browsers
+    const idString = `${timestamp}${random}`;
+    
+    // Convert to number but ensure it's valid
+    const id = parseInt(idString);
+    
+    // Final validation - if invalid, use current timestamp only
+    return isNaN(id) ? Date.now() : id;
+}
+
+// FIXED: Samsung Browser Date Issue - Robust date formatting
+function formatPostDate(timestamp) {
+    // Handle multiple timestamp formats for browser compatibility
+    let date;
+    
+    // Check if timestamp is valid
+    if (!timestamp || timestamp === 0 || timestamp === '0') {
+        return 'Recent';
+    }
+    
+    try {
+        // Method 1: Try direct Date object
+        date = new Date(timestamp);
+        
+        // Method 2: If invalid, try parsing as number (Samsung browser fix)
+        if (isNaN(date.getTime())) {
+            const numericTimestamp = parseInt(timestamp);
+            date = new Date(numericTimestamp);
+        }
+        
+        // Method 3: If still invalid, try string parsing
+        if (isNaN(date.getTime())) {
+            date = new Date(timestamp.toString());
+        }
+        
+        // Method 4: Final fallback - current date
+        if (isNaN(date.getTime())) {
+            date = new Date();
+        }
+        
+    } catch (error) {
+        console.warn('Date parsing failed, using current date:', error);
+        date = new Date();
+    }
+    
+    // Final validation
+    if (isNaN(date.getTime())) {
+        return 'Recent';
+    }
+    
+    // Format the date with fallbacks
+    try {
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    } catch (error) {
+        // Manual fallback format
+        const day = date.getDate();
+        const month = date.toLocaleString('en-US', { month: 'short' });
+        const year = date.getFullYear();
+        return `${day} ${month} ${year}`;
+    }
+}
+
+// Enhanced load posts function
 async function loadPosts() {
     const blogStatus = document.getElementById('blogStatus');
     const syncStatus = document.getElementById('syncStatus');
@@ -1220,32 +1306,32 @@ async function loadPosts() {
         if (localPosts && localPosts.length > 0) {
             posts = localPosts;
             renderPosts();
-            blogStatus.innerHTML = '<div class="sync-status">📱 Using local posts</div>';
+            if (blogStatus) blogStatus.innerHTML = '<div class="sync-status">📱 Using local posts</div>';
             if (syncStatus) syncStatus.innerHTML = '✅ Local storage';
             return;
         }
 
         // Second priority: Try multiple JSON URLs
-        blogStatus.innerHTML = '<div class="loading">🔄 Loading posts from server...</div>';
+        if (blogStatus) blogStatus.innerHTML = '<div class="loading">🔄 Loading posts from server...</div>';
         if (syncStatus) syncStatus.innerHTML = '🔄 Connecting...';
 
         for (const url of JSON_URLS) {
             try {
-                const response = await fetch(url + '?t=' + Date.now()); // Cache bust
+                const response = await fetch(url + '?t=' + Date.now());
                 if (response.ok) {
                     const serverPosts = await response.json();
                     if (Array.isArray(serverPosts) && serverPosts.length > 0) {
                         posts = serverPosts;
                         localStorage.setItem('posts', JSON.stringify(posts));
                         renderPosts();
-                        blogStatus.innerHTML = '<div class="sync-status">✅ Posts loaded from server</div>';
+                        if (blogStatus) blogStatus.innerHTML = '<div class="sync-status">✅ Posts loaded from server</div>';
                         if (syncStatus) syncStatus.innerHTML = '✅ Server sync';
                         return;
                     }
                 }
             } catch (error) {
                 console.log(`Failed to load from ${url}:`, error);
-                continue; // Try next URL
+                continue;
             }
         }
 
@@ -1257,16 +1343,17 @@ async function loadPosts() {
         posts = getDefaultPosts();
         localStorage.setItem('posts', JSON.stringify(posts));
         renderPosts();
-        blogStatus.innerHTML = '<div class="offline-notice">⚠️ Using offline mode. Posts may not be latest.</div>';
+        if (blogStatus) blogStatus.innerHTML = '<div class="offline-notice">⚠️ Using offline mode. Posts may not be latest.</div>';
         if (syncStatus) syncStatus.innerHTML = '⚠️ Offline mode';
     }
 }
 
-// Get default posts
+// Get default posts with proper timestamps
 function getDefaultPosts() {
+    const now = generatePostId();
     return [
         {
-            id: Date.now() - 2,
+            id: now - 2,
             title: "Cloud Computing for Small Businesses: Cost-Effective IT Solutions",
             content: "Cloud computing has revolutionized how small businesses approach IT infrastructure. Instead of investing heavily in physical servers and maintenance, businesses can now leverage cloud services for scalable, pay-as-you-go solutions. Services like AWS, Google Cloud, and Microsoft Azure offer enterprise-level capabilities at affordable prices...",
             image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
@@ -1274,7 +1361,7 @@ function getDefaultPosts() {
             createdAt: new Date().toISOString()
         },
         {
-            id: Date.now() - 1,
+            id: now - 1,
             title: "Cybersecurity Best Practices for Remote Teams in 2024",
             content: "With the rise of remote work, cybersecurity has become more critical than ever. Remote teams face unique challenges including unsecured home networks, personal device usage, and phishing attacks. Implementing multi-factor authentication (MFA) across all business applications is the first line of defense...",
             image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
@@ -1287,7 +1374,6 @@ function getDefaultPosts() {
 // Save posts to localStorage
 function savePostsToLocalStorage() {
     localStorage.setItem('posts', JSON.stringify(posts));
-    // Update sync status
     const syncStatus = document.getElementById('syncStatus');
     if (syncStatus) {
         syncStatus.innerHTML = '✅ Local storage (needs export)';
@@ -1327,7 +1413,6 @@ function importPosts(files) {
                 document.getElementById('backupStatus').innerHTML = '✅ Posts imported successfully!<br><small>All devices will see these posts after GitHub update</small>';
                 document.getElementById('backupStatus').style.color = '#10b981';
                 
-                // Update sync status
                 const syncStatus = document.getElementById('syncStatus');
                 if (syncStatus) syncStatus.innerHTML = '✅ Imported (needs export)';
             } else {
@@ -1342,21 +1427,7 @@ function importPosts(files) {
     reader.readAsText(file);
 }
 
-// FIXED: Date Format Function - Proper date display
-function formatPostDate(timestamp) {
-    const date = new Date(timestamp);
-    // Check if date is valid
-    if (isNaN(date.getTime())) {
-        return 'Recent';
-    }
-    return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-    });
-}
-
-// Enhanced renderPosts function with proper date formatting
+// Enhanced renderPosts function with Samsung browser compatibility
 function renderPosts() {
     const box = document.getElementById('posts');
     const sidebarBox = document.getElementById('sidebarPosts');
@@ -1390,7 +1461,7 @@ function renderPosts() {
             `;
         }
         
-        // FIXED: Use proper date formatting
+        // FIXED: Use enhanced date formatting for Samsung browser
         const postDate = formatPostDate(p.id);
         
         // Social Share Buttons
@@ -1448,6 +1519,149 @@ function renderPosts() {
     });
 }
 
+// Auto Social Media Posting
+async function autoPostToSocialMedia(post) {
+    const websiteUrl = 'https://rajesh01-droid.github.io/rajesh-kumar-blog/';
+    const postUrl = `${websiteUrl}?post=${post.id}`;
+    
+    const postMessage = `🚀 New Blog Post: "${post.title}"
+    
+${post.content.substring(0, 200)}...
+
+Read full article: ${postUrl}
+
+#IT #Technology #Blog #${post.title.split(' ').slice(0, 2).join('')}`;
+
+    const results = {
+        twitter: false,
+        linkedin: false,
+        facebook: false
+    };
+
+    try {
+        // Twitter Auto Post
+        if (document.getElementById('autoTwitter')?.checked) {
+            const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(postMessage)}`;
+            window.open(twitterUrl, '_blank', 'width=600,height=400');
+            results.twitter = true;
+        }
+
+        // LinkedIn Auto Post  
+        if (document.getElementById('autoLinkedIn')?.checked) {
+            const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(postUrl)}&title=${encodeURIComponent(post.title)}`;
+            window.open(linkedinUrl, '_blank', 'width=600,height=400');
+            results.linkedin = true;
+        }
+
+        // Facebook Auto Post
+        if (document.getElementById('autoFacebook')?.checked) {
+            const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}`;
+            window.open(facebookUrl, '_blank', 'width=600,height=400');
+            results.facebook = true;
+        }
+
+        // Update post with share results
+        post.shares = (post.shares || 0) + Object.values(results).filter(Boolean).length;
+        post.socialMediaPosted = true;
+        savePostsToLocalStorage();
+        updateSocialStats();
+
+        return results;
+
+    } catch (error) {
+        console.error('Social media posting failed:', error);
+        return results;
+    }
+}
+
+// Add new post with auto social media
+async function addPost() {
+    if (!isAdmin) {
+        alert('Session expired. Please login again.');
+        showPage('login');
+        return;
+    }
+    
+    const t = document.getElementById('title').value.trim();
+    const c = document.getElementById('content').value.trim();
+    const imageUrl = document.getElementById('imageUrl').value.trim();
+    const imageCredit = document.getElementById('imageCredit').value.trim();
+    const statusEl = document.getElementById('publishStatus');
+    
+    if (!t || !c) {
+        statusEl.innerText = 'Please fill title and content fields';
+        statusEl.style.color = '#ef4444';
+        return;
+    }
+    
+    // FIXED: Use enhanced ID generation for Samsung browser
+    const id = generatePostId();
+    const newPost = { 
+        id, 
+        title: t, 
+        content: c,
+        image: imageUrl || null,
+        imageCredit: imageCredit || null,
+        shares: 0,
+        views: 0,
+        createdAt: new Date().toISOString(),
+        socialMediaPosted: false
+    };
+    
+    posts.unshift(newPost);
+    
+    // Save to localStorage first
+    savePostsToLocalStorage();
+    
+    // Show publishing status
+    statusEl.innerHTML = '🔄 Publishing post & sharing on social media...';
+    statusEl.style.color = '#f59e0b';
+    
+    try {
+        // Auto post to social media
+        const socialResults = await autoPostToSocialMedia(newPost);
+        
+        // Update post with social media results
+        newPost.socialResults = socialResults;
+        
+        // Save updated post
+        savePostsToLocalStorage();
+        
+        // Show success message with social media results
+        const successMessages = [];
+        if (socialResults.twitter) successMessages.push('✓ Twitter');
+        if (socialResults.linkedin) successMessages.push('✓ LinkedIn');
+        if (socialResults.facebook) successMessages.push('✓ Facebook');
+        
+        statusEl.innerHTML = `✅ Post published successfully!<br>
+            <small>Shared on: ${successMessages.join(', ') || 'No platforms selected'}</small>`;
+        statusEl.style.color = '#10b981';
+        
+    } catch (error) {
+        console.error('Social media posting failed:', error);
+        statusEl.innerHTML = '✅ Post published!<br><small>Social media sharing failed - use manual share buttons</small>';
+        statusEl.style.color = '#10b981';
+    }
+    
+    // Update views
+    renderPosts();
+    renderAdmin();
+    updateSocialStats();
+    
+    // Clear form
+    document.getElementById('title').value = '';
+    document.getElementById('content').value = '';
+    document.getElementById('imageUrl').value = '';
+    document.getElementById('imageCredit').value = '';
+    document.getElementById('imagePreview').innerHTML = `
+        <div style="text-align:center">
+            <i class="fas fa-image"></i>
+            <div>Post Image Preview</div>
+            <div class="image-help">Add image URL below to see preview</div>
+        </div>
+    `;
+}
+
 // Track post views
 function trackPostView(postId) {
     const post = posts.find(p => p.id === postId);
@@ -1469,48 +1683,66 @@ function updateSocialStats() {
     document.getElementById('monthlyViews').textContent = monthlyViews;
 }
 
-// Initialize social stats on page load
-function initializeSocialStats() {
-    // Set initial values
-    updateSocialStats();
+// Social Media Analytics
+function showSocialAnalytics() {
+    const totalShares = posts.reduce((sum, post) => sum + (post.shares || 0), 0);
+    const sharedPosts = posts.filter(post => post.socialMediaPosted).length;
+    const twitterShares = posts.filter(post => post.socialResults?.twitter).length;
+    const linkedinShares = posts.filter(post => post.socialResults?.linkedin).length;
     
-    // Load any existing analytics data
-    const analytics = JSON.parse(localStorage.getItem('blogAnalytics') || '{}');
-    
-    // Update posts with analytics data
-    posts.forEach(post => {
-        if (analytics[post.id]) {
-            post.views = analytics[post.id].views || 0;
-            post.shares = analytics[post.id].shares || 0;
-        }
-    });
-    
-    savePostsToLocalStorage();
+    return `
+        <div class="social-stats">
+            <div class="stat-card">
+                <div class="stat-number">${totalShares}</div>
+                <div class="stat-label">Total Shares</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">${sharedPosts}</div>
+                <div class="stat-label">Auto-Shared Posts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">${twitterShares}</div>
+                <div class="stat-label">Twitter Posts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">${linkedinShares}</div>
+                <div class="stat-label">LinkedIn Posts</div>
+            </div>
+        </div>
+    `;
 }
 
-// Enhanced savePostsToLocalStorage
-function savePostsToLocalStorage() {
-    localStorage.setItem('posts', JSON.stringify(posts));
+// Initialize social media settings
+function initializeSocialMedia() {
+    const socialPrefs = JSON.parse(localStorage.getItem('socialMediaPreferences') || '{}');
     
-    // Also save analytics separately
-    const analytics = {};
-    posts.forEach(post => {
-        analytics[post.id] = {
-            views: post.views || 0,
-            shares: post.shares || 0,
-            title: post.title
-        };
-    });
-    localStorage.setItem('blogAnalytics', JSON.stringify(analytics));
-    
-    // Update sync status
-    const syncStatus = document.getElementById('syncStatus');
-    if (syncStatus) {
-        syncStatus.innerHTML = '✅ Local storage (needs export)';
+    if (document.getElementById('autoTwitter')) {
+        document.getElementById('autoTwitter').checked = socialPrefs.autoTwitter !== false;
     }
+    if (document.getElementById('autoLinkedIn')) {
+        document.getElementById('autoLinkedIn').checked = socialPrefs.autoLinkedIn !== false;
+    }
+    if (document.getElementById('autoFacebook')) {
+        document.getElementById('autoFacebook').checked = socialPrefs.autoFacebook || false;
+    }
+    
+    document.querySelectorAll('.auto-share-options input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', saveSocialMediaPreferences);
+    });
 }
 
-// FIXED: Enhanced showPage function with active navigation
+// Save social media preferences
+function saveSocialMediaPreferences() {
+    const preferences = {
+        autoTwitter: document.getElementById('autoTwitter')?.checked || false,
+        autoLinkedIn: document.getElementById('autoLinkedIn')?.checked || false,
+        autoFacebook: document.getElementById('autoFacebook')?.checked || false
+    };
+    
+    localStorage.setItem('socialMediaPreferences', JSON.stringify(preferences));
+}
+
+// Enhanced showPage function with active navigation
 function showPage(page) {
     // Hide all main content sections
     document.querySelectorAll('[data-page]').forEach(s => {
@@ -1523,7 +1755,7 @@ function showPage(page) {
         el.style.display = 'block';
     }
     
-    // FIXED: Update active navigation state
+    // Update active navigation state
     document.querySelectorAll('nav a').forEach(link => {
         link.classList.remove('active');
     });
@@ -1550,6 +1782,11 @@ function showPage(page) {
     // If trying to access login but already logged in, go to admin
     if (page === 'login' && isAdmin) {
         showPage('admin');
+    }
+    
+    // Update social analytics when admin panel opens
+    if (page === 'admin') {
+        document.getElementById('socialAnalyticsContent').innerHTML = showSocialAnalytics();
     }
 }
 
@@ -1594,66 +1831,6 @@ function logout() {
     }, 3000);
 }
 
-// Add new post
-function addPost() {
-    if (!isAdmin) {
-        alert('Session expired. Please login again.');
-        showPage('login');
-        return;
-    }
-    
-    const t = document.getElementById('title').value.trim();
-    const c = document.getElementById('content').value.trim();
-    const imageUrl = document.getElementById('imageUrl').value.trim();
-    const imageCredit = document.getElementById('imageCredit').value.trim();
-    const statusEl = document.getElementById('publishStatus');
-    
-    if (!t || !c) {
-        statusEl.innerText = 'Please fill title and content fields';
-        statusEl.style.color = '#ef4444';
-        return;
-    }
-    
-    const id = Date.now();
-    const newPost = { 
-        id, 
-        title: t, 
-        content: c,
-        image: imageUrl || null,
-        imageCredit: imageCredit || null,
-        shares: 0,
-        views: 0,
-        createdAt: new Date().toISOString()
-    };
-    
-    posts.unshift(newPost);
-    
-    // Save to localStorage
-    savePostsToLocalStorage();
-    
-    // Show success message
-    statusEl.innerHTML = '✅ Post published successfully!<br><small>Export posts to update GitHub repository</small>';
-    statusEl.style.color = '#10b981';
-    
-    // Update views
-    renderPosts();
-    renderAdmin();
-    updateSocialStats();
-    
-    // Clear form
-    document.getElementById('title').value = '';
-    document.getElementById('content').value = '';
-    document.getElementById('imageUrl').value = '';
-    document.getElementById('imageCredit').value = '';
-    document.getElementById('imagePreview').innerHTML = `
-        <div style="text-align:center">
-            <i class="fas fa-image"></i>
-            <div>Post Image Preview</div>
-            <div class="image-help">Add image URL below to see preview</div>
-        </div>
-    `;
-}
-
 // Render admin posts
 function renderAdmin() {
     const box = document.getElementById('adminPosts');
@@ -1668,18 +1845,66 @@ function renderAdmin() {
     const sortedPosts = [...posts].sort((a, b) => b.id - a.id);
     
     sortedPosts.forEach(p => {
+        const socialStatus = p.socialMediaPosted ? 
+            '<span style="color:#10b981; font-size:12px;">✓ Shared</span>' : 
+            '<span style="color:#ef4444; font-size:12px;">✗ Not Shared</span>';
+        
         const d = document.createElement('div');
         d.className = 'post';
         d.innerHTML = `
             ${p.image ? `<img src="${p.image}" style="width:100px;height:60px;object-fit:cover;border-radius:4px;margin-bottom:8px;" alt="Thumbnail" />` : ''}
             <h3>${p.title}</h3>
-            <div class='small'>ID: ${p.id} | Posted: ${formatPostDate(p.id)}</div>
+            <div class='small'>ID: ${p.id} | Posted: ${formatPostDate(p.id)} | ${socialStatus}</div>
             <div style='margin-top:8px'>
                 <button onclick='editPost(${p.id})' class='btn'>Edit</button> 
+                <button onclick='resharePost(${p.id})' class='btn' style='background:#f59e0b'>Re-share</button>
                 <button onclick='deletePost(${p.id})' class='btn' style='background:#ef4444'>Delete</button>
             </div>`;
         box.appendChild(d);
     });
+}
+
+// Re-share existing post
+async function resharePost(postId) {
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+    
+    const statusEl = document.getElementById('publishStatus') || document.getElementById('deleteStatus');
+    
+    if (statusEl) {
+        statusEl.innerHTML = '🔄 Re-sharing on social media...';
+        statusEl.style.color = '#f59e0b';
+    }
+    
+    try {
+        const socialResults = await autoPostToSocialMedia(post);
+        
+        // Update post shares
+        post.shares = (post.shares || 0) + Object.values(socialResults).filter(Boolean).length;
+        post.socialMediaPosted = true;
+        post.lastShared = new Date().toISOString();
+        
+        savePostsToLocalStorage();
+        renderAdmin();
+        updateSocialStats();
+        
+        if (statusEl) {
+            const successMessages = [];
+            if (socialResults.twitter) successMessages.push('Twitter');
+            if (socialResults.linkedin) successMessages.push('LinkedIn');
+            if (socialResults.facebook) successMessages.push('Facebook');
+            
+            statusEl.innerHTML = `✅ Re-shared successfully!<br><small>Platforms: ${successMessages.join(', ') || 'None'}</small>`;
+            statusEl.style.color = '#10b981';
+        }
+        
+    } catch (error) {
+        console.error('Re-share failed:', error);
+        if (statusEl) {
+            statusEl.innerHTML = '❌ Re-share failed. Try manual sharing.';
+            statusEl.style.color = '#ef4444';
+        }
+    }
 }
 
 // Edit post
@@ -1860,15 +2085,32 @@ document.getElementById('imageUrl').addEventListener('input', function() {
     }
 });
 
+// Initialize social stats on page load
+function initializeSocialStats() {
+    updateSocialStats();
+    
+    const analytics = JSON.parse(localStorage.getItem('blogAnalytics') || '{}');
+    
+    posts.forEach(post => {
+        if (analytics[post.id]) {
+            post.views = analytics[post.id].views || 0;
+            post.shares = analytics[post.id].shares || 0;
+        }
+    });
+    
+    savePostsToLocalStorage();
+}
+
 // Update the initialization
 function initializePage() {
     checkSession();
     loadPosts();
     showPage('home');
     initializeSocialStats();
+    initializeSocialMedia();
 }
 
-// Replace the old initialization call
+// Call initialization
 initializePage();
 </script>
 </body>
