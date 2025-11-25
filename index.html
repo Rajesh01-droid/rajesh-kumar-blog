@@ -692,6 +692,22 @@ hr {
   padding: 15px;
   margin-top: 15px;
 }
+
+.sync-status {
+  font-size: 12px;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.offline-notice {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin: 10px 0;
+  font-size: 12px;
+  color: #92400e;
+}
 </style>
 </head>
 <body>
@@ -735,6 +751,7 @@ hr {
       <!-- Blog list -->
       <section id="blog" class="card" data-page="blog" style="display:none">
         <h2 class="page-title">Latest Articles</h2>
+        <div id="blogStatus"></div>
         <div class="posts-container" id="posts">
           <div class="loading">Loading posts...</div>
         </div>
@@ -798,6 +815,8 @@ hr {
               <p class="small" style="margin-top: 15px;"><strong>Import Posts:</strong> Upload JSON file to restore posts (this will replace all current posts).</p>
               <input type="file" id="importFile" accept=".json" style="display: none" onchange="importPosts(this.files)">
               <button onclick="document.getElementById('importFile').click()" class="btn" style="background:#f59e0b; margin-top: 10px;">Import Posts JSON</button>
+              
+              <p class="small" style="margin-top: 15px;"><strong>Sync Status:</strong> <span id="syncStatus">Checking...</span></p>
             </div>
             <div id="backupStatus" class="publish-status"></div>
           </div>
@@ -823,7 +842,6 @@ hr {
         </div>
       </section>
 
-      <!-- Other sections (About, Contact, Privacy) remain same -->
       <!-- ABOUT PAGE -->
       <section id="about" class="card" data-page="about" style="display:none">
         <h2 class="page-title">About Rajesh Kumar</h2>
@@ -1008,53 +1026,94 @@ let isAdmin = localStorage.getItem('adminSession') === 'true';
 const ADMIN_USER = 'admin';
 const ADMIN_PASS = 'Rajesh!@';
 
-// GitHub JSON file URL - Yeh aapko update karna hoga apne repository ke hisaab se
-const GITHUB_JSON_URL = 'https://raw.githubusercontent.com/rajesh01-droid/rajesh-kumar-blog/main/data/posts.json';
+// Multiple JSON URLs for fallback
+const JSON_URLS = [
+    'https://raw.githubusercontent.com/rajesh01-droid/rajesh-kumar-blog/main/data/posts.json',
+    'https://rajesh01-droid.github.io/rajesh-kumar-blog/data/posts.json'
+];
 
 // Posts array
 let posts = [];
 
-// Load posts from GitHub JSON file
+// Enhanced load posts function with multiple fallbacks
 async function loadPosts() {
+    const blogStatus = document.getElementById('blogStatus');
+    const syncStatus = document.getElementById('syncStatus');
+    
     try {
-        const response = await fetch(GITHUB_JSON_URL);
-        if (response.ok) {
-            posts = await response.json();
+        // First priority: Check localStorage
+        const localPosts = JSON.parse(localStorage.getItem('posts'));
+        if (localPosts && localPosts.length > 0) {
+            posts = localPosts;
             renderPosts();
-        } else {
-            throw new Error('Failed to load posts from GitHub');
+            blogStatus.innerHTML = '<div class="sync-status">📱 Using local posts</div>';
+            syncStatus.innerHTML = '✅ Local storage';
+            return;
         }
+
+        // Second priority: Try multiple JSON URLs
+        blogStatus.innerHTML = '<div class="loading">🔄 Loading posts from server...</div>';
+        syncStatus.innerHTML = '🔄 Connecting...';
+
+        for (const url of JSON_URLS) {
+            try {
+                const response = await fetch(url + '?t=' + Date.now()); // Cache bust
+                if (response.ok) {
+                    const serverPosts = await response.json();
+                    if (Array.isArray(serverPosts) && serverPosts.length > 0) {
+                        posts = serverPosts;
+                        localStorage.setItem('posts', JSON.stringify(posts));
+                        renderPosts();
+                        blogStatus.innerHTML = '<div class="sync-status">✅ Posts loaded from server</div>';
+                        syncStatus.innerHTML = '✅ Server sync';
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.log(`Failed to load from ${url}:`, error);
+                continue; // Try next URL
+            }
+        }
+
+        // Final fallback: Default posts
+        throw new Error('All sources failed');
+
     } catch (error) {
-        console.error('Error loading posts from GitHub:', error);
-        // Fallback to localStorage
-        posts = JSON.parse(localStorage.getItem('posts')) || getDefaultPosts();
+        console.error('All loading methods failed:', error);
+        posts = getDefaultPosts();
+        localStorage.setItem('posts', JSON.stringify(posts));
         renderPosts();
+        blogStatus.innerHTML = '<div class="offline-notice">⚠️ Using offline mode. Posts may not be latest.</div>';
+        syncStatus.innerHTML = '⚠️ Offline mode';
     }
 }
 
-// Get default posts if none exist
+// Get default posts
 function getDefaultPosts() {
     return [
         {
-            id: 1,
-            title: 'How IT Infrastructure Management Impacts Organizational Efficiency',
-            content: 'Effective IT infrastructure management is crucial for modern organizations...',
-            image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-            imageCredit: 'Source: Unsplash'
+            id: Date.now() - 2,
+            title: "Cloud Computing for Small Businesses: Cost-Effective IT Solutions",
+            content: "Cloud computing has revolutionized how small businesses approach IT infrastructure. Instead of investing heavily in physical servers and maintenance, businesses can now leverage cloud services for scalable, pay-as-you-go solutions. Services like AWS, Google Cloud, and Microsoft Azure offer enterprise-level capabilities at affordable prices...",
+            image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+            imageCredit: "Source: Unsplash"
         },
         {
-            id: 2,
-            title: 'The Importance of Data Accuracy in Reporting Systems',
-            content: 'Accurate data is the foundation of effective decision-making in any organization...',
-            image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-            imageCredit: 'Source: Unsplash'
+            id: Date.now() - 1,
+            title: "Cybersecurity Best Practices for Remote Teams in 2024",
+            content: "With the rise of remote work, cybersecurity has become more critical than ever. Remote teams face unique challenges including unsecured home networks, personal device usage, and phishing attacks. Implementing multi-factor authentication (MFA) across all business applications is the first line of defense...",
+            image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+            imageCredit: "Source: Unsplash"
         }
     ];
 }
 
-// Save posts to localStorage (as backup)
+// Save posts to localStorage
 function savePostsToLocalStorage() {
     localStorage.setItem('posts', JSON.stringify(posts));
+    // Update sync status
+    const syncStatus = document.getElementById('syncStatus');
+    syncStatus.innerHTML = '✅ Local storage (needs export)';
 }
 
 // Export posts as JSON file
@@ -1067,7 +1126,7 @@ function exportPosts() {
     link.download = 'blog-posts-backup.json';
     link.click();
     
-    document.getElementById('backupStatus').innerText = '✅ Posts exported successfully! Download the JSON file and upload it to your GitHub repository in the data folder.';
+    document.getElementById('backupStatus').innerHTML = '✅ Posts exported!<br><small>Upload this file to GitHub to sync across devices</small>';
     document.getElementById('backupStatus').style.color = '#10b981';
 }
 
@@ -1087,13 +1146,16 @@ function importPosts(files) {
                 renderPosts();
                 renderAdmin();
                 
-                document.getElementById('backupStatus').innerText = '✅ Posts imported successfully! Remember to also update the posts.json file in your GitHub repository.';
+                document.getElementById('backupStatus').innerHTML = '✅ Posts imported successfully!<br><small>All devices will see these posts after GitHub update</small>';
                 document.getElementById('backupStatus').style.color = '#10b981';
+                
+                // Update sync status
+                document.getElementById('syncStatus').innerHTML = '✅ Imported (needs export)';
             } else {
                 throw new Error('Invalid file format');
             }
         } catch (error) {
-            document.getElementById('backupStatus').innerText = '❌ Error importing posts. Invalid file format.';
+            document.getElementById('backupStatus').innerHTML = '❌ Error: Invalid JSON file format';
             document.getElementById('backupStatus').style.color = '#ef4444';
         }
     };
@@ -1101,9 +1163,7 @@ function importPosts(files) {
     reader.readAsText(file);
 }
 
-// Rest of the functions remain the same as previous code
-// (renderPosts, toggleFullContent, showPage, login, addPost, etc.)
-
+// Render posts to the page
 function renderPosts() {
     const box = document.getElementById('posts');
     const sidebarBox = document.getElementById('sidebarPosts');
@@ -1119,7 +1179,9 @@ function renderPosts() {
     }
     
     // Show latest posts first
-    posts.slice().reverse().forEach(p => {
+    const sortedPosts = [...posts].sort((a, b) => b.id - a.id);
+    
+    sortedPosts.forEach(p => {
         const el = document.createElement('div');
         el.className = 'post';
         
@@ -1134,7 +1196,7 @@ function renderPosts() {
         el.innerHTML = `
             ${imageHtml}
             <h3>${p.title}</h3>
-            <div class="meta">Posted — ${new Date(p.id || Date.now()).toLocaleDateString()}</div>
+            <div class="meta">Posted — ${new Date(p.id).toLocaleDateString()}</div>
             <div class="post-content">
                 <p>${p.content.substring(0, 400)}...</p>
                 <span class="read-more" onclick="toggleFullContent(this)">Read full article</span>
@@ -1146,19 +1208,22 @@ function renderPosts() {
         `;
         box.appendChild(el);
         
-        // Create a simplified version for sidebar
-        const sidebarEl = document.createElement('div');
-        sidebarEl.className = 'post';
-        sidebarEl.innerHTML = `
-            <h3 style="font-size:15px;margin-bottom:5px">${p.title}</h3>
-            <div class="meta">Posted — ${new Date(p.id || Date.now()).toLocaleDateString()}</div>
-            <p class="small">${p.content.substring(0, 150)}...</p>
-            <span class="read-more" onclick="showPage('blog')">Read more</span>
-        `;
-        sidebarBox.appendChild(sidebarEl);
+        // Create a simplified version for sidebar (only 2 latest)
+        if (sidebarBox.children.length < 2) {
+            const sidebarEl = document.createElement('div');
+            sidebarEl.className = 'post';
+            sidebarEl.innerHTML = `
+                <h3 style="font-size:15px;margin-bottom:5px">${p.title}</h3>
+                <div class="meta">Posted — ${new Date(p.id).toLocaleDateString()}</div>
+                <p class="small">${p.content.substring(0, 150)}...</p>
+                <span class="read-more" onclick="showPage('blog')">Read more</span>
+            `;
+            sidebarBox.appendChild(sidebarEl);
+        }
     });
 }
 
+// Toggle full content view
 function toggleFullContent(element) {
     const contentDiv = element.parentElement;
     const fullContent = contentDiv.querySelector('.full-content');
@@ -1173,6 +1238,7 @@ function toggleFullContent(element) {
     }
 }
 
+// Toggle section visibility
 function toggleSection(sectionId) {
     const section = document.getElementById(sectionId);
     const icon = section.previousElementSibling.querySelector('.toggle-icon');
@@ -1186,6 +1252,7 @@ function toggleSection(sectionId) {
     }
 }
 
+// Show specific page
 function showPage(page) {
     // Hide all main content sections
     document.querySelectorAll('[data-page]').forEach(s => {
@@ -1217,6 +1284,7 @@ function showPage(page) {
     }
 }
 
+// Admin login
 function login() {
     const u = document.getElementById('user').value.trim();
     const p = document.getElementById('pass').value.trim();
@@ -1240,6 +1308,7 @@ function login() {
     }
 }
 
+// Admin logout
 function logout() {
     isAdmin = false;
     localStorage.removeItem('adminSession');
@@ -1256,6 +1325,7 @@ function logout() {
     }, 3000);
 }
 
+// Add new post
 function addPost() {
     if (!isAdmin) {
         alert('Session expired. Please login again.');
@@ -1276,7 +1346,7 @@ function addPost() {
     }
     
     const id = Date.now();
-    posts.push({ 
+    posts.unshift({ 
         id, 
         title: t, 
         content: c,
@@ -1284,18 +1354,18 @@ function addPost() {
         imageCredit: imageCredit || null
     });
     
-    // Save to localStorage as backup
+    // Save to localStorage
     savePostsToLocalStorage();
     
-    // Show success message with instructions
-    statusEl.innerHTML = '✅ Post published successfully!<br><small>To make this post available on all devices, export the posts and update the posts.json file in your GitHub repository.</small>';
+    // Show success message
+    statusEl.innerHTML = '✅ Post published successfully!<br><small>Export posts to update GitHub repository</small>';
     statusEl.style.color = '#10b981';
     
-    // Update both blog and admin views
+    // Update views
     renderPosts();
     renderAdmin();
     
-    // Clear form fields
+    // Clear form
     document.getElementById('title').value = '';
     document.getElementById('content').value = '';
     document.getElementById('imageUrl').value = '';
@@ -1309,6 +1379,7 @@ function addPost() {
     `;
 }
 
+// Render admin posts
 function renderAdmin() {
     const box = document.getElementById('adminPosts');
     box.innerHTML = '';
@@ -1318,8 +1389,10 @@ function renderAdmin() {
         return;
     }
     
-    // Show latest posts first in admin panel too
-    posts.slice().reverse().forEach(p => {
+    // Show latest posts first
+    const sortedPosts = [...posts].sort((a, b) => b.id - a.id);
+    
+    sortedPosts.forEach(p => {
         const d = document.createElement('div');
         d.className = 'post';
         d.innerHTML = `
@@ -1334,6 +1407,7 @@ function renderAdmin() {
     });
 }
 
+// Edit post
 function editPost(id) {
     if (!isAdmin) {
         alert('Session expired. Please login again.');
@@ -1362,6 +1436,7 @@ function editPost(id) {
     }
 }
 
+// Delete post
 function deletePost(id) {
     if (!isAdmin) {
         alert('Session expired. Please login again.');
@@ -1379,17 +1454,17 @@ function deletePost(id) {
         statusEl.innerText = '🗑️ Post deleted successfully!';
         statusEl.style.color = '#ef4444';
         
-        // Update both views immediately
+        // Update views
         renderPosts();
         renderAdmin();
         
-        // Auto-hide delete message after 3 seconds
         setTimeout(() => {
             statusEl.innerText = '';
         }, 3000);
     }
 }
 
+// Send contact form
 function sendContact() {
     const n = document.getElementById('cname').value.trim();
     const e = document.getElementById('cemail').value.trim();
@@ -1436,7 +1511,7 @@ function goToSlide(index) {
     });
 }
 
-// Auto-advance slides every 5 seconds
+// Auto-advance slides
 let sliderInterval = setInterval(() => {
     currentSlide = (currentSlide + 1) % 4;
     goToSlide(currentSlide);
@@ -1446,7 +1521,6 @@ let sliderInterval = setInterval(() => {
 function checkSession() {
     if (isAdmin) {
         document.getElementById('adminBadge').style.display = 'inline-block';
-        // If already logged in and on login page, redirect to admin
         if (window.location.hash === '#login' || document.querySelector('[data-page="login"]').style.display === 'block') {
             showPage('admin');
         }
@@ -1484,7 +1558,7 @@ document.getElementById('imageUrl').addEventListener('input', function() {
 
 // Initialize the page
 checkSession();
-loadPosts(); // Load posts from GitHub
+loadPosts();
 showPage('home');
 </script>
 </body>
