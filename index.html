@@ -1046,7 +1046,7 @@ async function loadPosts() {
         if (localPosts && localPosts.length > 0) {
             posts = localPosts;
             renderPosts();
-            blogStatus.innerHTML = '<div class="sync-status">📱 Using local posts</div>';
+            blogStatus.innerHTML = '<div class="sync-status"></div>';
             syncStatus.innerHTML = '✅ Local storage';
             return;
         }
@@ -1563,3 +1563,4 @@ showPage('home');
 </script>
 </body>
 </html>
+
