@@ -844,6 +844,27 @@ hr {
     color: var(--muted);
     margin-top: 4px;
 }
+
+.analytics-refresh {
+    margin: 10px 0;
+    text-align: center;
+}
+
+.refresh-btn {
+    background: #8b5cf6;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s ease;
+}
+
+.refresh-btn:hover {
+    background: #7c3aed;
+    transform: translateY(-1px);
+}
 </style>
 </head>
 <body>
@@ -1002,6 +1023,11 @@ hr {
             <span class="toggle-icon">▼</span>
           </div>
           <div class="toggle-content" id="socialAnalytics">
+            <div class="analytics-refresh">
+              <button class="refresh-btn" onclick="updateSocialAnalytics()">
+                <i class="fas fa-sync-alt"></i> Refresh Analytics
+              </button>
+            </div>
             <div id="socialAnalyticsContent">
               <!-- Social analytics will be inserted here -->
             </div>
@@ -1563,6 +1589,7 @@ Read full article: ${postUrl}
         // Update post with share results
         post.shares = (post.shares || 0) + Object.values(results).filter(Boolean).length;
         post.socialMediaPosted = true;
+        post.socialResults = results; // Store results for analytics
         savePostsToLocalStorage();
         updateSocialStats();
 
@@ -1683,14 +1710,22 @@ function updateSocialStats() {
     document.getElementById('monthlyViews').textContent = monthlyViews;
 }
 
-// Social Media Analytics
-function showSocialAnalytics() {
+// FIXED: Enhanced Social Media Analytics with real-time updates
+function updateSocialAnalytics() {
     const totalShares = posts.reduce((sum, post) => sum + (post.shares || 0), 0);
     const sharedPosts = posts.filter(post => post.socialMediaPosted).length;
+    
+    // Calculate platform-specific shares
     const twitterShares = posts.filter(post => post.socialResults?.twitter).length;
     const linkedinShares = posts.filter(post => post.socialResults?.linkedin).length;
+    const facebookShares = posts.filter(post => post.socialResults?.facebook).length;
     
-    return `
+    // Calculate engagement rate
+    const totalViews = posts.reduce((sum, post) => sum + (post.views || 0), 0);
+    const engagementRate = totalViews > 0 ? ((totalShares / totalViews) * 100).toFixed(2) : 0;
+    
+    const analyticsContent = document.getElementById('socialAnalyticsContent');
+    analyticsContent.innerHTML = `
         <div class="social-stats">
             <div class="stat-card">
                 <div class="stat-number">${totalShares}</div>
@@ -1708,8 +1743,52 @@ function showSocialAnalytics() {
                 <div class="stat-number">${linkedinShares}</div>
                 <div class="stat-label">LinkedIn Posts</div>
             </div>
+            <div class="stat-card">
+                <div class="stat-number">${facebookShares}</div>
+                <div class="stat-label">Facebook Posts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">${engagementRate}%</div>
+                <div class="stat-label">Engagement Rate</div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px; background: #f8fafc; padding: 15px; border-radius: 8px;">
+            <h4 style="margin-top: 0; color: #0f172a;">Recent Sharing Activity</h4>
+            <div style="max-height: 200px; overflow-y: auto;">
+                ${getRecentSharingActivity()}
+            </div>
         </div>
     `;
+}
+
+// Get recent sharing activity for analytics
+function getRecentSharingActivity() {
+    const sharedPosts = posts
+        .filter(post => post.socialMediaPosted)
+        .sort((a, b) => b.id - a.id)
+        .slice(0, 5);
+    
+    if (sharedPosts.length === 0) {
+        return '<p class="small" style="text-align: center; color: var(--muted);">No sharing activity yet</p>';
+    }
+    
+    return sharedPosts.map(post => {
+        const platforms = [];
+        if (post.socialResults?.twitter) platforms.push('Twitter');
+        if (post.socialResults?.linkedin) platforms.push('LinkedIn');
+        if (post.socialResults?.facebook) platforms.push('Facebook');
+        
+        return `
+            <div style="padding: 8px; border-bottom: 1px solid var(--border);">
+                <div style="font-weight: 600; font-size: 13px;">${post.title}</div>
+                <div style="font-size: 11px; color: var(--muted);">
+                    Shared on: ${platforms.join(', ')} | 
+                    Date: ${formatPostDate(post.id)}
+                </div>
+            </div>
+        `;
+    }).join('');
 }
 
 // Initialize social media settings
@@ -1786,7 +1865,7 @@ function showPage(page) {
     
     // Update social analytics when admin panel opens
     if (page === 'admin') {
-        document.getElementById('socialAnalyticsContent').innerHTML = showSocialAnalytics();
+        updateSocialAnalytics();
     }
 }
 
@@ -1887,6 +1966,7 @@ async function resharePost(postId) {
         savePostsToLocalStorage();
         renderAdmin();
         updateSocialStats();
+        updateSocialAnalytics(); // Refresh analytics
         
         if (statusEl) {
             const successMessages = [];
@@ -1957,6 +2037,7 @@ function deletePost(id) {
         // Update views
         renderPosts();
         renderAdmin();
+        updateSocialAnalytics(); // Refresh analytics
         
         setTimeout(() => {
             statusEl.innerText = '';
@@ -2114,4 +2195,4 @@ function initializePage() {
 initializePage();
 </script>
 </body>
-          </html>
+</html>
