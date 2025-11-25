@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "title": "How IT Infrastructure Management Impacts Organizational Efficiency",
+    "content": "Effective IT infrastructure management is crucial for modern organizations...",
+    "image": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+    "imageCredit": "Source: Unsplash"
+  },
+  {
+    "id": 2, 
+    "title": "The Importance of Data Accuracy in Reporting Systems",
+    "content": "Accurate data is the foundation of effective decision-making in any organization...",
+    "image": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+    "imageCredit": "Source: Unsplash"
+  }
+]
